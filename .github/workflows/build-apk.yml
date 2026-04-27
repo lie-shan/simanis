@@ -1,0 +1,152 @@
+name: Build APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Build AppBundle
+        run: flutter build appbundle --release
+
+      - name: Rename APKs
+        run: |
+          mkdir -p release
+          cd build/app/outputs/flutter-apk
+          for f in app-*.apk; do
+            cp "$f" "../../../release/siakad-${GITHUB_REF_NAME}-${f#app-}"
+          done
+          cp app-release.apk "../../../release/siakad-${GITHUB_REF_NAME}-universal.apk"
+          cd ../../bundle/release
+          cp app-release.aab "../../../release/siakad-${GITHUB_REF_NAME}.aab"
+        shell: bash
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-page:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Create Download Page
+        run: |
+          mkdir -p _site
+          cat > _site/index.html << 'HTML'
+          <!DOCTYPE html>
+          <html lang="id">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Download SIAKAD</title>
+            <style>
+              *{margin:0;padding:0;box-sizing:border-box}
+              body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+              .container{background:white;border-radius:20px;padding:40px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center}
+              h1{color:#333;margin-bottom:20px}
+              .detected{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;border-radius:15px;margin-bottom:25px}
+              .btn{display:block;width:100%;padding:18px;background:#48bb78;color:white;border:none;border-radius:12px;font-size:18px;font-weight:bold;cursor:pointer;text-decoration:none;margin-bottom:15px}
+              .btn:hover{background:#38a169}
+              .btn-secondary{background:#edf2f7;color:#4a5568}
+              .btn-secondary:hover{background:#e2e8f0}
+              .options{margin-top:30px;padding-top:30px;border-top:1px solid #e2e8f0}
+              .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+              .option{padding:12px;background:#f7fafc;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;text-align:center;text-decoration:none;color:#4a5568;font-size:14px}
+              .option:hover{border-color:#667eea;background:#f0f4ff}
+              .arch{font-weight:bold;color:#333;display:block;margin-bottom:4px}
+              .hidden{display:none}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Download SIAKAD</h1>
+              <div class="detected">
+                <h2>Perangkat Terdeteksi</h2>
+                <p id="device">Mendeteksi...</p>
+              </div>
+              <a id="downloadBtn" href="#" class="btn">Download untuk HP Ini</a>
+              <button onclick="toggleOptions()" class="btn btn-secondary">Lihat Semua Pilihan</button>
+              <div id="options" class="options hidden">
+                <div class="grid">
+                  <a href="https://github.com/lie-shan/siakad_login/releases/latest/download/siakad-v1.0.2-arm64-v8a-release.apk" class="option"><span class="arch">ARM64</span>HP Modern</a>
+                  <a href="https://github.com/lie-shan/siakad_login/releases/latest/download/siakad-v1.0.2-armeabi-v7a-release.apk" class="option"><span class="arch">ARMv7</span>HP Lama</a>
+                  <a href="https://github.com/lie-shan/siakad_login/releases/latest/download/siakad-v1.0.2-x86_64-release.apk" class="option"><span class="arch">x86_64</span>Emulator</a>
+                  <a href="https://github.com/lie-shan/siakad_login/releases/latest/download/siakad-v1.0.2-universal.apk" class="option"><span class="arch">Universal</span>Semua HP</a>
+                </div>
+              </div>
+            </div>
+            <script>
+              function detectArch() {
+                const ua = navigator.userAgent;
+                if (/Android/.test(ua)) {
+                  if (/arm64|aarch64/.test(ua)) return {arch:'arm64-v8a', name:'ARM64 (HP Modern)'};
+                  if (/armv7|armeabi/.test(ua)) return {arch:'armeabi-v7a', name:'ARMv7 (HP Lama)'};
+                  if (/x86_64/.test(ua)) return {arch:'x86_64', name:'x86_64 (Emulator)'};
+                  return {arch:'arm64-v8a', name:'ARM64 (HP Modern)'};
+                }
+                return {arch:'universal', name:'Universal'};
+              }
+              const info = detectArch();
+              document.getElementById('device').textContent = info.name;
+              document.getElementById('downloadBtn').href = 'https://github.com/lie-shan/siakad_login/releases/latest/download/siakad-v1.0.2-' + info.arch + '-release.apk';
+              function toggleOptions() {
+                document.getElementById('options').classList.toggle('hidden');
+              }
+            </script>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
