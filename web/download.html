@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download SIAKAD App - Auto Device Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .device-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.2; }
+            20% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="py-6 px-4">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold">SIAKAD</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#features" class="hover:text-purple-200 transition">Fitur</a>
+                <a href="#compatibility" class="hover:text-purple-200 transition">Kompatibilitas</a>
+                <a href="#support" class="hover:text-purple-200 transition">Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- Hero Section -->
+        <section class="text-center mb-16">
+            <h2 class="text-4xl md:text-6xl font-bold mb-6">
+                Download Aplikasi SIAKAD
+            </h2>
+            <p class="text-xl md:text-2xl text-purple-100 mb-8">
+                Deteksi Otomatis Device & Download Versi Terbaik untuk HP Anda
+            </p>
+            
+            <!-- Download Button -->
+            <div id="downloadSection" class="mb-8">
+                <button id="downloadBtn" onclick="startDownload()" 
+                    class="bg-white text-purple-700 px-8 py-4 rounded-full text-lg font-bold hover:bg-purple-100 transition transform hover:scale-105 pulse-animation">
+                    <i class="fas fa-download mr-3"></i>
+                    Download Sekarang
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingSection" class="hidden">
+                <div class="device-card rounded-2xl p-8 max-w-md mx-auto">
+                    <div class="mb-6">
+                        <i class="fas fa-mobile-alt text-6xl text-purple-200 mb-4"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Mendeteksi Device Anda</h3>
+                    <p class="text-purple-100 mb-6">Sedang menganalisis spesifikasi HP untuk download versi optimal</p>
+                    <div class="loading-dots text-3xl">
+                        <span>.</span><span>.</span><span>.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Info -->
+            <div id="deviceInfo" class="hidden mb-8">
+                <div class="device-card rounded-2xl p-6 max-w-2xl mx-auto">
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Informasi Device Terdeteksi
+                    </h3>
+                    <div id="deviceDetails" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <!-- Device details will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Progress -->
+            <div id="progressSection" class="hidden">
+                <div class="device-card rounded-2xl p-6 max-w-md mx-auto">
+                    <h3 class="text-xl font-bold mb-4">Mengunduh Aplikasi</h3>
+                    <div class="mb-4">
+                        <div class="bg-purple-800 rounded-full h-4 overflow-hidden">
+                            <div id="progressBar" class="bg-white h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p id="progressText" class="text-sm">Memulai download...</p>
+                    <p id="downloadSpeed" class="text-xs text-purple-200 mt-2"></p>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="successSection" class="hidden">
+                <div class="device-card rounded-2xl p-8 max-w-md mx-auto">
+                    <div class="mb-6">
+                        <i class="fas fa-check-circle text-6xl text-green-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Download Berhasil!</h3>
+                    <p class="text-purple-100 mb-6">APK telah diunduh. Silakan install untuk memulai.</p>
+                    <button onclick="window.location.reload()" 
+                        class="bg-purple-600 text-white px-6 py-3 rounded-full font-bold hover:bg-purple-700 transition">
+                        Download Ulang
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorSection" class="hidden">
+                <div class="device-card rounded-2xl p-8 max-w-md mx-auto">
+                    <div class="mb-6">
+                        <i class="fas fa-exclamation-triangle text-6xl text-yellow-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Download Gagal</h3>
+                    <p id="errorMessage" class="text-purple-100 mb-6">Terjadi kesalahan saat download.</p>
+                    <button onclick="window.location.reload()" 
+                        class="bg-purple-600 text-white px-6 py-3 rounded-full font-bold hover:bg-purple-700 transition">
+                        Coba Lagi
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="mb-16">
+            <h3 class="text-3xl font-bold text-center mb-12">Fitur Unggulan</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="device-card rounded-xl p-6 text-center">
+                    <i class="fas fa-magic text-4xl mb-4 text-purple-200"></i>
+                    <h4 class="text-xl font-bold mb-3">Deteksi Otomatis</h4>
+                    <p class="text-purple-100">Mendeteksi spesifikasi HP dan download versi optimal</p>
+                </div>
+                <div class="device-card rounded-xl p-6 text-center">
+                    <i class="fas fa-rocket text-4xl mb-4 text-purple-200"></i>
+                    <h4 class="text-xl font-bold mb-3">Performa Optimal</h4>
+                    <p class="text-purple-100">Aplikasi dioptimalkan sesuai kemampuan device Anda</p>
+                </div>
+                <div class="device-card rounded-xl p-6 text-center">
+                    <i class="fas fa-shield-alt text-4xl mb-4 text-purple-200"></i>
+                    <h4 class="text-xl font-bold mb-3">Aman & Terpercaya</h4>
+                    <p class="text-purple-100">Download langsung dari GitHub resmi</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Compatibility Section -->
+        <section id="compatibility" class="mb-16">
+            <h3 class="text-3xl font-bold text-center mb-12">Kompatibilitas Device</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="device-card rounded-xl p-6">
+                    <i class="fas fa-mobile-alt text-3xl mb-3 text-green-400"></i>
+                    <h4 class="font-bold mb-2">Low-end</h4>
+                    <p class="text-sm text-purple-100">&lt; 2GB RAM</p>
+                    <p class="text-xs text-purple-200 mt-2">UI sederhana, performa maksimal</p>
+                </div>
+                <div class="device-card rounded-xl p-6">
+                    <i class="fas fa-mobile-alt text-3xl mb-3 text-blue-400"></i>
+                    <h4 class="font-bold mb-2">Medium</h4>
+                    <p class="text-sm text-purple-100">2-4GB RAM</p>
+                    <p class="text-xs text-purple-200 mt-2">Balance antara fitur & performa</p>
+                </div>
+                <div class="device-card rounded-xl p-6">
+                    <i class="fas fa-mobile-alt text-3xl mb-3 text-purple-400"></i>
+                    <h4 class="font-bold mb-2">High-end</h4>
+                    <p class="text-sm text-purple-100">4-8GB RAM</p>
+                    <p class="text-xs text-purple-200 mt-2">Full features, rich animations</p>
+                </div>
+                <div class="device-card rounded-xl p-6">
+                    <i class="fas fa-mobile-alt text-3xl mb-3 text-yellow-400"></i>
+                    <h4 class="font-bold mb-2">Premium</h4>
+                    <p class="text-sm text-purple-100">&gt; 8GB RAM</p>
+                    <p class="text-xs text-purple-200 mt-2">Ultra quality, 4K support</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-purple-400">
+        <div class="container mx-auto text-center">
+            <p class="text-purple-100 mb-4">© 2024 SIAKAD - All rights reserved</p>
+            <div class="flex justify-center space-x-6">
+                <a href="#support" class="hover:text-purple-200 transition">
+                    <i class="fas fa-envelope"></i> Support
+                </a>
+                <a href="https://github.com/your-username/siakad_login" class="hover:text-purple-200 transition">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="#" class="hover:text-purple-200 transition">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Device detection and download logic
+        class DeviceDetector {
+            constructor() {
+                this.deviceInfo = this.getDeviceInfo();
+                this.downloadUrl = '';
+            }
+
+            getDeviceInfo() {
+                const ua = navigator.userAgent;
+                const isAndroid = /Android/.test(ua);
+                const isMobile = /Mobile|Android|iPhone|iPad/.test(ua);
+                
+                // Detect device type and performance based on user agent and screen info
+                let deviceType = 'unknown';
+                let performanceCategory = 'medium';
+                let ram = 'unknown';
+                
+                if (isAndroid) {
+                    deviceType = 'android';
+                    
+                    // Extract Android version and device info
+                    const androidMatch = ua.match(/Android (\d+(?:\.\d+)?)/);
+                    const androidVersion = androidMatch ? parseFloat(androidMatch[1]) : 0;
+                    
+                    // Detect device performance based on various factors
+                    const screenSize = Math.min(window.screen.width, window.screen.height);
+                    const pixelRatio = window.devicePixelRatio || 1;
+                    const totalPixels = screenSize * screenSize * pixelRatio * pixelRatio;
+                    
+                    // Estimate performance based on available metrics
+                    if (androidVersion < 6 || screenSize < 720 || totalPixels < 1000000) {
+                        performanceCategory = 'low';
+                        ram = '< 2GB';
+                    } else if (androidVersion >= 10 && screenSize >= 1080 && totalPixels > 2000000) {
+                        performanceCategory = 'premium';
+                        ram = '> 8GB';
+                    } else if (androidVersion >= 8 && screenSize >= 1080) {
+                        performanceCategory = 'high';
+                        ram = '4-8GB';
+                    } else {
+                        performanceCategory = 'medium';
+                        ram = '2-4GB';
+                    }
+                    
+                    // Try to extract device model
+                    const modelMatch = ua.match(/; ([^)]+)\)/);
+                    const model = modelMatch ? modelMatch[1] : 'Unknown Android Device';
+                    
+                    return {
+                        type: deviceType,
+                        model: model,
+                        os: `Android ${androidVersion}`,
+                        screenSize: `${screenSize}x${window.screen.height}`,
+                        performanceCategory: performanceCategory,
+                        estimatedRAM: ram,
+                        isMobile: isMobile
+                    };
+                }
+                
+                return {
+                    type: 'desktop',
+                    model: 'Desktop',
+                    os: navigator.platform,
+                    screenSize: `${window.screen.width}x${window.screen.height}`,
+                    performanceCategory: 'high',
+                    estimatedRAM: 'unknown',
+                    isMobile: isMobile
+                };
+            }
+
+            getDownloadUrl() {
+                const baseUrl = "https://github.com/lie-shan/siakad_login/releases/latest/download";
+                
+                switch (this.deviceInfo.performanceCategory) {
+                    case 'low':
+                        return `${baseUrl}/app-arm64-v8a-low-release.apk`;
+                    case 'medium':
+                        return `${baseUrl}/app-arm64-v8a-medium-release.apk`;
+                    case 'high':
+                        return `${baseUrl}/app-arm64-v8a-high-release.apk`;
+                    case 'premium':
+                        return `${baseUrl}/app-arm64-v8a-premium-release.apk`;
+                    default:
+                        return `${baseUrl}/app-release.apk`;
+                }
+            }
+
+            displayDeviceInfo() {
+                const detailsDiv = document.getElementById('deviceDetails');
+                detailsDiv.innerHTML = `
+                    <div class="mb-3">
+                        <i class="fas fa-mobile-alt mr-2"></i>
+                        <strong>Device:</strong> ${this.deviceInfo.model}
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-os mr-2"></i>
+                        <strong>OS:</strong> ${this.deviceInfo.os}
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-tv mr-2"></i>
+                        <strong>Screen:</strong> ${this.deviceInfo.screenSize}
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-memory mr-2"></i>
+                        <strong>RAM:</strong> ${this.deviceInfo.estimatedRAM}
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-tachometer-alt mr-2"></i>
+                        <strong>Performance:</strong> ${this.deviceInfo.performanceCategory.charAt(0).toUpperCase() + this.deviceInfo.performanceCategory.slice(1)}
+                    </div>
+                    <div>
+                        <i class="fas fa-download mr-2"></i>
+                        <strong>Version:</strong> Optimized for ${this.deviceInfo.performanceCategory} devices
+                    </div>
+                `;
+            }
+        }
+
+        // Download manager
+        class DownloadManager {
+            constructor(url, filename) {
+                this.url = url;
+                this.filename = filename;
+                this.startTime = Date.now();
+                this.lastProgressTime = this.startTime;
+                this.lastLoadedBytes = 0;
+            }
+
+            async startDownload() {
+                try {
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = this.url;
+                    link.download = this.filename;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Simulate progress for demo (in real implementation, you'd track actual download)
+                    this.simulateProgress();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    return false;
+                }
+            }
+
+            simulateProgress() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        this.onComplete();
+                    }
+                    this.onProgress(progress);
+                }, 500);
+            }
+
+            onProgress(progress) {
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                const downloadSpeed = document.getElementById('downloadSpeed');
+                
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `Mengunduh... ${Math.round(progress)}%`;
+                
+                // Simulate speed calculation
+                const currentTime = Date.now();
+                const timeDiff = (currentTime - this.lastProgressTime) / 1000;
+                if (timeDiff > 0) {
+                    const speed = Math.random() * 2 + 1; // Simulated speed in MB/s
+                    downloadSpeed.textContent = `Speed: ${speed.toFixed(1)} MB/s`;
+                }
+            }
+
+            onComplete() {
+                document.getElementById('progressSection').classList.add('hidden');
+                document.getElementById('successSection').classList.remove('hidden');
+            }
+        }
+
+        // Main download function
+        async function startDownload() {
+            // Hide download button, show loading
+            document.getElementById('downloadSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            // Detect device
+            const detector = new DeviceDetector();
+            
+            // Simulate detection delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Show device info
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('deviceInfo').classList.remove('hidden');
+            detector.displayDeviceInfo();
+            
+            // Wait a moment then start download
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Start download
+            document.getElementById('deviceInfo').classList.add('hidden');
+            document.getElementById('progressSection').classList.remove('hidden');
+            
+            const downloadUrl = detector.getDownloadUrl();
+            const filename = `siakad-${detector.deviceInfo.performanceCategory}.apk`;
+            
+            const downloadManager = new DownloadManager(downloadUrl, filename);
+            await downloadManager.startDownload();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is on mobile device
+            const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+            if (!isMobile) {
+                // Show desktop message
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.innerHTML = '<i class="fas fa-qr-code mr-3"></i>Scan QR Code untuk Download';
+                downloadBtn.onclick = function() {
+                    alert('Silakan buka halaman ini di HP Android untuk download otomatis, atau scan QR code yang tersedia.');
+                };
+            }
+        });
+    </script>
+</body>
+</html>

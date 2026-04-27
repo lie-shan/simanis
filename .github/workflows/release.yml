@@ -1,0 +1,523 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'New release with automatic device optimization'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Generate device-specific APKs
+        run: |
+          # Build APK for low-end devices
+          flutter build apk --release --dart-define=DEVICE_PERFORMANCE=low --split-per-abi --target-platform android-arm64
+          
+          # Build APK for medium devices
+          flutter build apk --release --dart-define=DEVICE_PERFORMANCE=medium --split-per-abi --target-platform android-arm64
+          
+          # Build APK for high-end devices
+          flutter build apk --release --dart-define=DEVICE_PERFORMANCE=high --split-per-abi --target-platform android-arm64
+          
+          # Build APK for premium devices
+          flutter build apk --release --dart-define=DEVICE_PERFORMANCE=premium --split-per-abi --target-platform android-arm64
+
+      - name: Build universal APK
+        run: |
+          flutter build apk --release --dart-define=DEVICE_PERFORMANCE=universal
+
+      - name: Build App Bundle
+        run: |
+          flutter build appbundle --release --dart-define=DEVICE_PERFORMANCE=universal
+
+      - name: Create release directory
+        run: |
+          mkdir -p release
+          cp build/app/outputs/flutter-apk/app-*.apk release/
+          cp build/app/outputs/bundle/release/app-release.aab release/
+
+      - name: Generate device compatibility matrix
+        run: |
+          cat > release/device_compatibility.json << EOF
+          {
+            "version": "${{ github.ref_name || 'v' + github.event.inputs.version }}",
+            "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "build_number": "${{ github.run_number }}",
+            "device_profiles": {
+              "low": {
+                "description": "Optimized for devices with < 2GB RAM",
+                "target_devices": "Android 5.0+, ARMv7, < 2GB RAM",
+                "features": ["Basic UI", "Reduced animations", "Low-res images"],
+                "apk_files": ["app-arm64-v8a-low-release.apk", "app-armeabi-v7a-low-release.apk"]
+              },
+              "medium": {
+                "description": "Optimized for devices with 2-4GB RAM",
+                "target_devices": "Android 6.0+, ARMv8, 2-4GB RAM",
+                "features": ["Enhanced UI", "Standard animations", "Medium-res images"],
+                "apk_files": ["app-arm64-v8a-medium-release.apk", "app-armeabi-v7a-medium-release.apk"]
+              },
+              "high": {
+                "description": "Optimized for devices with 4-8GB RAM",
+                "target_devices": "Android 8.0+, ARMv8, 4-8GB RAM",
+                "features": ["Full UI", "Rich animations", "High-res images", "Video streaming"],
+                "apk_files": ["app-arm64-v8a-high-release.apk", "app-armeabi-v7a-high-release.apk"]
+              },
+              "premium": {
+                "description": "Optimized for flagship devices with > 8GB RAM",
+                "target_devices": "Android 10.0+, ARMv8, > 8GB RAM",
+                "features": ["Premium UI", "Advanced animations", "Ultra-res images", "4K video", "Advanced features"],
+                "apk_files": ["app-arm64-v8a-premium-release.apk", "app-armeabi-v7a-premium-release.apk"]
+              },
+              "universal": {
+                "description": "Universal build for all devices",
+                "target_devices": "Android 5.0+, All architectures",
+                "features": ["Adaptive performance", "Auto-detection", "All features"],
+                "apk_files": ["app-release.apk"]
+              }
+            },
+            "download_recommendations": {
+              "automatic": "Use universal APK for automatic device detection",
+              "manual": "Choose specific profile based on device RAM and performance"
+            }
+          }
+          EOF
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-builds
+          path: release/
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS (different configurations)
+        run: |
+          # Build for different iOS device generations
+          flutter build ios --release --dart-define=DEVICE_PERFORMANCE=low --no-codesign
+          flutter build ios --release --dart-define=DEVICE_PERFORMANCE=medium --no-codesign
+          flutter build ios --release --dart-define=DEVICE_PERFORMANCE=high --no-codesign
+          flutter build ios --release --dart-define=DEVICE_PERFORMANCE=premium --no-codesign
+
+      - name: Create iOS release directory
+        run: |
+          mkdir -p release/ios
+          cp -r build/ios/iphoneos/Runner.app release/ios/
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-builds
+          path: release/ios/
+
+  create-release:
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-builds
+          path: release/
+
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-builds
+          path: release/
+
+      - name: Generate release notes
+        run: |
+          cat > release/RELEASE_NOTES.md << EOF
+          # SIAKAD App Release ${{ github.ref_name || 'v' + github.event.inputs.version }}
+          
+          ## 🚀 Automatic Device Optimization
+          
+          This release includes **automatic device optimization** that adapts the app experience based on your device specifications:
+          
+          ### 📱 Device-Specific Builds
+          
+          - **Low-end devices** (< 2GB RAM): Optimized for performance with basic UI
+          - **Medium devices** (2-4GB RAM): Balanced performance and features
+          - **High-end devices** (4-8GB RAM): Full feature set with enhanced UI
+          - **Premium devices** (> 8GB RAM): Maximum quality with all advanced features
+          - **Universal build**: Automatically detects and adapts to your device
+          
+          ### ✨ Key Features
+          
+          - 🎯 **Automatic device detection** on first launch
+          - 📥 **Smart asset downloading** based on device capabilities
+          - 🎨 **Adaptive UI** that scales with screen size and performance
+          - 💾 **Intelligent caching** optimized for available storage
+          - 🔄 **Background optimization** for smooth performance
+          
+          ### 📋 Installation Instructions
+          
+          1. **Recommended**: Download the **Universal APK** for automatic device optimization
+          2. **Manual selection**: Choose a specific build based on your device RAM:
+             - Low RAM (< 2GB): `app-*-low-release.apk`
+             - Medium RAM (2-4GB): `app-*-medium-release.apk`
+             - High RAM (4-8GB): `app-*-high-release.apk`
+             - Premium RAM (> 8GB): `app-*-premium-release.apk`
+          
+          ### 🔧 System Requirements
+          
+          - **Android**: 5.0 (Lollipop) or higher
+          - **RAM**: Minimum 1GB, recommended 2GB+
+          - **Storage**: 100MB free space (plus additional for cached content)
+          - **Network**: Internet connection for initial setup and content download
+          
+          ### 🐛 Bug Fixes & Improvements
+          
+          - Enhanced performance on low-end devices
+          - Improved download reliability
+          - Better memory management
+          - Optimized image loading
+          - Reduced battery consumption
+          
+          ---
+          
+          ${{ github.event.inputs.release_notes || '' }}
+          
+          **Build Information:**
+          - Build Number: ${{ github.run_number }}
+          - Build Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          - Flutter Version: 3.19.0
+          EOF
+
+      - name: Generate release description
+        run: |
+          python3 .github/scripts/generate-release-description.py
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name || 'v' + github.event.inputs.version }}
+          name: SIAKAD App ${{ github.ref_name || 'v' + github.event.inputs.version }}
+          body_path: release_description.md
+          files: |
+            release/*.apk
+            release/*.aab
+            release/device_compatibility.json
+            release/RELEASE_NOTES.md
+            release_description.md
+            smart-download.html
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build web version
+        run: |
+          flutter build web --release --dart-define=DEVICE_PERFORMANCE=universal --web-renderer canvaskit
+
+      - name: Copy download page
+        run: |
+          cp web/download.html build/web/index.html
+          cp web/download.html build/web/download.html
+
+      - name: Generate download config
+        run: |
+          cat > build/web/download-config.json << EOF
+          {
+            "version": "${{ github.ref_name || 'v1.0.0' }}",
+            "release_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "download_base_url": "https://github.com/${{ github.repository }}/releases/latest/download",
+            "apk_files": {
+              "low": "app-arm64-v8a-low-release.apk",
+              "medium": "app-arm64-v8a-medium-release.apk", 
+              "high": "app-arm64-v8a-high-release.apk",
+              "premium": "app-arm64-v8a-premium-release.apk",
+              "universal": "app-release.apk"
+            },
+            "device_thresholds": {
+              "low_ram": 2048,
+              "medium_ram": 4096,
+              "high_ram": 8192
+            },
+            "auto_download_enabled": true,
+            "fallback_apk": "app-release.apk"
+          }
+          EOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/web
+          destination_dir: release/${{ github.ref_name || 'latest' }}
+
+  create-download-page:
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-builds
+          path: release/
+
+      - name: Generate smart download page
+        run: |
+          # Create enhanced download page with QR codes and direct links
+          cat > release/smart-download.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="id">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Smart Download SIAKAD - ${{ github.ref_name || 'v1.0.0' }}</title>
+              <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+              <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+              <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+              <style>
+                  .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+                  .device-card { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+                  .pulse-animation { animation: pulse 2s infinite; }
+                  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+              </style>
+          </head>
+          <body class="gradient-bg min-h-screen text-white">
+              <div class="container mx-auto px-4 py-8">
+                  <header class="text-center mb-12">
+                      <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                          <i class="fas fa-download mr-3"></i>Download SIAKAD ${{ github.ref_name || 'v1.0.0' }}
+                      </h1>
+                      <p class="text-xl text-purple-100">Auto-detect device & download optimal version</p>
+                  </header>
+
+                  <main class="max-w-4xl mx-auto">
+                      <!-- Auto Download Section -->
+                      <section class="mb-12">
+                          <div class="device-card rounded-2xl p-8 text-center">
+                              <button onclick="startSmartDownload()" class="bg-white text-purple-700 px-8 py-4 rounded-full text-lg font-bold hover:bg-purple-100 transition transform hover:scale-105 pulse-animation">
+                                  <i class="fas fa-magic mr-3"></i>
+                                  Smart Download (Auto-Detect)
+                              </button>
+                              <p class="text-purple-100 mt-4">Automatically detects your device and downloads the best version</p>
+                          </div>
+                      </section>
+
+                      <!-- Manual Download Section -->
+                      <section class="mb-12">
+                          <h2 class="text-2xl font-bold text-center mb-8">Manual Download</h2>
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <!-- Low-end -->
+                              <div class="device-card rounded-xl p-6">
+                                  <div class="flex items-center justify-between mb-4">
+                                      <div>
+                                          <h3 class="text-lg font-bold">Low-end</h3>
+                                          <p class="text-sm text-purple-100">&lt; 2GB RAM</p>
+                                      </div>
+                                      <i class="fas fa-mobile-alt text-2xl text-green-400"></i>
+                                  </div>
+                                  <p class="text-sm text-purple-100 mb-4">Optimized for basic devices</p>
+                                  <button onclick="downloadFile('app-arm64-v8a-low-release.apk')" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                                      <i class="fas fa-download mr-2"></i>Download
+                                  </button>
+                              </div>
+
+                              <!-- Medium -->
+                              <div class="device-card rounded-xl p-6">
+                                  <div class="flex items-center justify-between mb-4">
+                                      <div>
+                                          <h3 class="text-lg font-bold">Medium</h3>
+                                          <p class="text-sm text-purple-100">2-4GB RAM</p>
+                                      </div>
+                                      <i class="fas fa-mobile-alt text-2xl text-blue-400"></i>
+                                  </div>
+                                  <p class="text-sm text-purple-100 mb-4">Balanced performance</p>
+                                  <button onclick="downloadFile('app-arm64-v8a-medium-release.apk')" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                                      <i class="fas fa-download mr-2"></i>Download
+                                  </button>
+                              </div>
+
+                              <!-- High-end -->
+                              <div class="device-card rounded-xl p-6">
+                                  <div class="flex items-center justify-between mb-4">
+                                      <div>
+                                          <h3 class="text-lg font-bold">High-end</h3>
+                                          <p class="text-sm text-purple-100">4-8GB RAM</p>
+                                      </div>
+                                      <i class="fas fa-mobile-alt text-2xl text-purple-400"></i>
+                                  </div>
+                                  <p class="text-sm text-purple-100 mb-4">Full features enabled</p>
+                                  <button onclick="downloadFile('app-arm64-v8a-high-release.apk')" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                                      <i class="fas fa-download mr-2"></i>Download
+                                  </button>
+                              </div>
+
+                              <!-- Premium -->
+                              <div class="device-card rounded-xl p-6">
+                                  <div class="flex items-center justify-between mb-4">
+                                      <div>
+                                          <h3 class="text-lg font-bold">Premium</h3>
+                                          <p class="text-sm text-purple-100">&gt; 8GB RAM</p>
+                                      </div>
+                                      <i class="fas fa-mobile-alt text-2xl text-yellow-400"></i>
+                                  </div>
+                                  <p class="text-sm text-purple-100 mb-4">Ultra quality & 4K</p>
+                                  <button onclick="downloadFile('app-arm64-v8a-premium-release.apk')" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                                      <i class="fas fa-download mr-2"></i>Download
+                                  </button>
+                              </div>
+                          </div>
+                      </section>
+
+                      <!-- Universal Download -->
+                      <section class="mb-12">
+                          <div class="device-card rounded-xl p-6">
+                              <h3 class="text-xl font-bold mb-4 text-center">
+                                  <i class="fas fa-globe mr-2"></i>Universal APK
+                              </h3>
+                              <p class="text-center text-purple-100 mb-4">Works on all Android devices with auto-optimization</p>
+                              <button onclick="downloadFile('app-release.apk')" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-bold">
+                                  <i class="fas fa-download mr-2"></i>Download Universal APK
+                              </button>
+                          </div>
+                      </section>
+
+                      <!-- QR Code Section -->
+                      <section class="text-center">
+                          <h3 class="text-2xl font-bold mb-6">Scan QR Code</h3>
+                          <div id="qrCode" class="inline-block p-4 bg-white rounded-lg"></div>
+                          <p class="text-purple-100 mt-4">Scan with your phone camera to download</p>
+                      </section>
+                  </main>
+
+                  <footer class="text-center py-8 mt-12 border-t border-purple-400">
+                      <p class="text-purple-100">© 2024 SIAKAD - Version ${{ github.ref_name || 'v1.0.0' }}</p>
+                  </footer>
+              </div>
+
+              <script>
+                  const baseUrl = "https://github.com/${{ github.repository }}/releases/latest/download";
+                  
+                  function startSmartDownload() {
+                      // Detect device and redirect to appropriate download
+                      const ua = navigator.userAgent;
+                      const isAndroid = /Android/.test(ua);
+                      
+                      if (!isAndroid) {
+                          alert('Please open this page on an Android device for automatic download.');
+                          return;
+                      }
+                      
+                      // Simple device detection (you can enhance this)
+                      const screenSize = Math.min(window.screen.width, window.screen.height);
+                      let apkFile = 'app-release.apk'; // Default universal
+                      
+                      if (screenSize < 720) {
+                          apkFile = 'app-arm64-v8a-low-release.apk';
+                      } else if (screenSize >= 720 && screenSize < 1080) {
+                          apkFile = 'app-arm64-v8a-medium-release.apk';
+                      } else if (screenSize >= 1080 && screenSize < 1440) {
+                          apkFile = 'app-arm64-v8a-high-release.apk';
+                      } else if (screenSize >= 1440) {
+                          apkFile = 'app-arm64-v8a-premium-release.apk';
+                      }
+                      
+                      downloadFile(apkFile);
+                  }
+                  
+                  function downloadFile(filename) {
+                      const url = baseUrl + '/' + filename;
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = filename;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                  }
+                  
+                  // Generate QR Code for universal download
+                  document.addEventListener('DOMContentLoaded', function() {
+                      const qr = qrcode(0, 'M');
+                      qr.addData(baseUrl + '/app-release.apk');
+                      qr.make();
+                      document.getElementById('qrCode').innerHTML = qr.createImgTag(5, 10);
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload download page as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-download-page
+          path: release/smart-download.html
+
+      - name: Update release with download page
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name || 'v1.0.0' }}
+          files: |
+            release/smart-download.html
+            release/device_compatibility.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
