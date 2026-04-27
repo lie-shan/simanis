@@ -74,7 +74,7 @@ jobs:
         run: |
           cat > release/device_compatibility.json << EOF
           {
-            "name": "build-android-${{ format('v{0}', github.ref_name || github.event.inputs.version) }}",
+            "name": "build-android-${{ github.ref_name || format('v{0}', github.event.inputs.version) }}",
             "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "build_number": "${{ github.run_number }}",
             "device_profiles": {
@@ -186,7 +186,7 @@ jobs:
       - name: Generate release notes
         run: |
           cat > release/RELEASE_NOTES.md << EOF
-          # SIAKAD App Release ${{ format('v{0}', github.ref_name || github.event.inputs.version) }}
+          # SIAKAD App Release ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
           
           ## 🚀 Automatic Device Optimization
           
