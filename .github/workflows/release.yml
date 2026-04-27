@@ -177,10 +177,16 @@ jobs:
           name: ios-builds
           path: release/
 
+      - name: Download download page artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: smart-download-page
+          path: release/
+
       - name: Generate release notes
         run: |
           cat > release/RELEASE_NOTES.md << EOF
-          # SIAKAD App Release ${format('v{0}', github.ref_name || github.event.inputs.version)}
+          # SIAKAD App Release ${{ format('v{0}', github.ref_name || github.event.inputs.version) }}
           
           ## 🚀 Automatic Device Optimization
           
@@ -238,21 +244,21 @@ jobs:
 
       - name: Generate release description
         run: |
-          python .github/scripts/generate-release-description.py
+          cd release
+          python ../.github/scripts/generate-release-description.py
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
           name: SIAKAD App ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
-          body_path: release_description.md
+          body_path: release/release_description.md
           files: |
             release/*.apk
             release/*.aab
             release/device_compatibility.json
             release/RELEASE_NOTES.md
-            release_description.md
-            smart-download.html
+            release/release_description.md
           draft: false
           prerelease: false
         env:
@@ -286,7 +292,7 @@ jobs:
         run: |
           cat > build/web/download-config.json << EOF
           {
-            "version": "${{ github.ref_name || 'v1.0.0' }}",
+            "version": "${{ github.ref_name || format('v{0}', github.event.inputs.version) }}",
             "release_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "download_base_url": "https://github.com/${{ github.repository }}/releases/latest/download",
             "apk_files": {
@@ -335,7 +341,7 @@ jobs:
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Smart Download SIAKAD - ${{ github.ref_name || 'v1.0.0' }}</title>
+              <title>Smart Download SIAKAD - ${{ format('v{0}', github.ref_name || github.event.inputs.version) }}</title>
               <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
               <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
               <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
@@ -350,7 +356,7 @@ jobs:
               <div class="container mx-auto px-4 py-8">
                   <header class="text-center mb-12">
                       <h1 class="text-4xl md:text-5xl font-bold mb-4">
-                          <i class="fas fa-download mr-3"></i>Download SIAKAD ${{ github.ref_name || 'v1.0.0' }}
+                          <i class="fas fa-download mr-3"></i>Download SIAKAD ${{ format('v{0}', github.ref_name || github.event.inputs.version) }}
                       </h1>
                       <p class="text-xl text-purple-100">Auto-detect device & download optimal version</p>
                   </header>
@@ -455,7 +461,7 @@ jobs:
                   </main>
 
                   <footer class="text-center py-8 mt-12 border-t border-purple-400">
-                      <p class="text-purple-100">© 2024 SIAKAD - Version ${{ github.ref_name || 'v1.0.0' }}</p>
+                      <p class="text-purple-100">© 2024 SIAKAD - Version ${{ format('v{0}', github.ref_name || github.event.inputs.version) }}</p>
                   </footer>
               </div>
 
@@ -520,9 +526,8 @@ jobs:
       - name: Update release with download page
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name || 'v1.0.0' }}
+          tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
           files: |
             release/smart-download.html
-            release/device_compatibility.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

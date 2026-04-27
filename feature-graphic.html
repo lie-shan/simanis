@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SIAKAD Feature Graphic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+        }
+        .container {
+            width: 1024px;
+            height: 500px;
+            background: linear-gradient(135deg, #006747 0%, #004d36 100%);
+            display: flex;
+            align-items: center;
+            padding: 40px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .content {
+            flex: 1;
+            color: white;
+            z-index: 1;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 40px;
+            color: #006747;
+        }
+        h1 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -2px;
+        }
+        .subtitle {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 28px;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+        .features {
+            display: flex;
+            gap: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 18px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            padding: 10px 18px;
+            border-radius: 25px;
+        }
+        .phone-mockup {
+            width: 280px;
+            height: 480px;
+            background: white;
+            border-radius: 30px;
+            padding: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: rotate(-5deg);
+            z-index: 1;
+        }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .phone-header {
+            height: 60px;
+            background: #006747;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: sans-serif;
+            font-size: 18px;
+        }
+        .phone-content {
+            padding: 20px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .menu-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .menu-icon {
+            width: 40px;
+            height: 40px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="capture">
+        <div class="content">
+            <div class="logo">📚</div>
+            <h1>SIAKAD</h1>
+            <div class="subtitle">Sistem Informasi Akademik</div>
+            <div class="features">
+                <div class="feature-item">
+                    <span>📱</span> Login QR
+                </div>
+                <div class="feature-item">
+                    <span>📊</span> Data Akademik
+                </div>
+                <div class="feature-item">
+                    <span>✓</span> Presensi
+                </div>
+            </div>
+        </div>
+        <div class="phone-mockup">
+            <div class="phone-screen">
+                <div class="phone-header">Presensi</div>
+                <div class="phone-content">
+                    <div class="menu-grid">
+                        <div class="menu-item">
+                            <div class="menu-icon">🎓</div>
+                            E-Learning
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">👤</div>
+                            Data Siswa
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">👥</div>
+                            Data Guru
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">📅</div>
+                            Jadwal
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        // Auto download on load
+        window.onload = function() {
+            html2canvas(document.getElementById('capture'), {
+                width: 1024,
+                height: 500,
+                scale: 1
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'siakad-feature-graphic.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        };
+    </script>
+</body>
+</html>
