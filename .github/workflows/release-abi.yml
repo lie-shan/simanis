@@ -1,0 +1,471 @@
+name: Build and Release (Split per ABI)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'New release with ABI-specific builds'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # Build APK split per ABI - Flutter akan otomatis generate:
+      # - app-arm64-v8a-release.apk (64-bit ARM - most modern phones)
+      # - app-armeabi-v7a-release.apk (32-bit ARM - older phones)
+      # - app-x86_64-release.apk (64-bit Intel - emulator/rare devices)
+      # - app-x86-release.apk (32-bit Intel - emulator/old devices)
+      - name: Build APKs split per ABI
+        run: |
+          flutter build apk --release --split-per-abi
+
+      - name: Build universal APK (fallback)
+        run: |
+          flutter build apk --release
+
+      - name: Build App Bundle (for Play Store)
+        run: |
+          flutter build appbundle --release
+
+      - name: Rename APKs with version
+        run: |
+          mkdir -p release
+          VERSION="${{ github.ref_name || github.event.inputs.version }}"
+          
+          # Copy and rename ABI-specific APKs
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            if [ -f "$apk" ]; then
+              filename=$(basename "$apk")
+              # Rename: app-arm64-v8a-release.apk → siakad-v1.0.0-arm64-v8a.apk
+              newname=$(echo "$filename" | sed "s/app-/siakad-${VERSION}-/" | sed 's/-release//')
+              cp "$apk" "release/$newname"
+              echo "Copied: $apk → release/$newname"
+            fi
+          done
+          
+          # Copy universal APK
+          cp build/app/outputs/flutter-apk/app-release.apk "release/siakad-${VERSION}-universal.apk"
+          
+          # Copy AAB
+          cp build/app/outputs/bundle/release/app-release.aab "release/siakad-${VERSION}.aab"
+
+      - name: List release files
+        run: ls -la release/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-builds
+          path: release/
+
+  create-release:
+    needs: build-android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-builds
+          path: release/
+
+      - name: Generate release notes
+        run: |
+          VERSION="${{ github.ref_name || github.event.inputs.version }}"
+          cat > release/RELEASE_NOTES.md << EOF
+          # SIAKAD App ${VERSION}
+
+          ## 📱 Download Sesuai Spesifikasi HP
+
+          Pilih file APK berdasarkan arsitektur CPU HP Anda:
+
+          | File | Arsitektur | Untuk HP |
+          |------|-----------|----------|
+          | **siakad-${VERSION}-arm64-v8a.apk** | ARM64 (64-bit) | HP modern 2018+ (Samsung, Xiaomi, OPPO, Vivo terbaru) |
+          | **siakad-${VERSION}-armeabi-v7a.apk** | ARMv7 (32-bit) | HP lama 2017 ke bawah |
+          | **siakad-${VERSION}-x86_64.apk** | x86_64 | Emulator/Chromebook |
+          | **siakad-${VERSION}-universal.apk** | Universal | Semua HP (file lebih besar) |
+          | **siakad-${VERSION}.aab** | - | Untuk upload Play Store |
+
+          ### 🔍 Cara Cek Arsitektur HP Anda:
+
+          **Opsi 1 - Aplikasi:**
+          1. Install aplikasi "CPU-Z" atau "AIDA64" dari Play Store
+          2. Buka aplikasi → lihat bagian "CPU Architecture"
+          3. Cari "arm64-v8a" atau "armeabi-v7a"
+
+          **Opsi 2 - Command (untuk developer):**
+          ```bash
+          adb shell getprop ro.product.cpu.abi
+          ```
+
+          **Opsi 3 - Smart Download:**
+          Buka halaman download otomatis: \`https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}\`
+
+          ### 🎯 Rekomendasi:
+          - **HP baru (2018+)**: Download \`siakad-${VERSION}-arm64-v8a.apk\`
+          - **HP lama**: Download \`siakad-${VERSION}-armeabi-v7a.apk\`
+          - **Tidak yakin**: Download \`siakad-${VERSION}-universal.apk\`
+
+          ### 📋 Changelog
+          ${{ github.event.inputs.release_notes || 'Bug fixes and improvements' }}
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
+          name: SIAKAD ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
+          body_path: release/RELEASE_NOTES.md
+          files: |
+            release/*.apk
+            release/*.aab
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-download-page:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Create Smart Download Page
+        run: |
+          mkdir -p _site
+          VERSION="${{ github.ref_name || github.event.inputs.version }}"
+          REPO="${{ github.repository }}"
+          
+          cat > _site/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="id">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Download SIAKAD - Auto Detect</title>
+              <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      min-height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      padding: 20px;
+                  }
+                  .container {
+                      background: white;
+                      border-radius: 20px;
+                      padding: 40px;
+                      max-width: 600px;
+                      width: 100%;
+                      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                  }
+                  .header {
+                      text-align: center;
+                      margin-bottom: 30px;
+                  }
+                  .header h1 {
+                      color: #333;
+                      font-size: 28px;
+                      margin-bottom: 10px;
+                  }
+                  .header p {
+                      color: #666;
+                  }
+                  .detected-box {
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      color: white;
+                      padding: 20px;
+                      border-radius: 15px;
+                      margin-bottom: 25px;
+                      text-align: center;
+                  }
+                  .detected-box h2 {
+                      font-size: 20px;
+                      margin-bottom: 10px;
+                  }
+                  .device-info {
+                      background: rgba(255,255,255,0.2);
+                      padding: 10px 15px;
+                      border-radius: 8px;
+                      font-size: 14px;
+                      font-family: monospace;
+                  }
+                  .btn-download {
+                      display: block;
+                      width: 100%;
+                      padding: 18px;
+                      background: #48bb78;
+                      color: white;
+                      border: none;
+                      border-radius: 12px;
+                      font-size: 18px;
+                      font-weight: bold;
+                      cursor: pointer;
+                      transition: all 0.3s;
+                      text-decoration: none;
+                      text-align: center;
+                      margin-bottom: 15px;
+                  }
+                  .btn-download:hover {
+                      background: #38a169;
+                      transform: translateY(-2px);
+                      box-shadow: 0 10px 20px rgba(72,187,120,0.3);
+                  }
+                  .btn-secondary {
+                      background: #edf2f7;
+                      color: #4a5568;
+                  }
+                  .btn-secondary:hover {
+                      background: #e2e8f0;
+                      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                  }
+                  .options {
+                      margin-top: 30px;
+                      padding-top: 30px;
+                      border-top: 1px solid #e2e8f0;
+                  }
+                  .options h3 {
+                      color: #333;
+                      margin-bottom: 15px;
+                      font-size: 16px;
+                  }
+                  .option-grid {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 10px;
+                  }
+                  .option-btn {
+                      padding: 12px;
+                      background: #f7fafc;
+                      border: 2px solid #e2e8f0;
+                      border-radius: 8px;
+                      cursor: pointer;
+                      transition: all 0.2s;
+                      text-align: center;
+                      text-decoration: none;
+                      color: #4a5568;
+                      font-size: 14px;
+                  }
+                  .option-btn:hover {
+                      border-color: #667eea;
+                      background: #f0f4ff;
+                  }
+                  .option-btn .arch {
+                      font-weight: bold;
+                      color: #333;
+                      display: block;
+                      margin-bottom: 4px;
+                  }
+                  .option-btn .desc {
+                      font-size: 12px;
+                      color: #718096;
+                  }
+                  .loading {
+                      text-align: center;
+                      padding: 40px;
+                  }
+                  .spinner {
+                      width: 50px;
+                      height: 50px;
+                      border: 4px solid #e2e8f0;
+                      border-top-color: #667eea;
+                      border-radius: 50%;
+                      animation: spin 1s linear infinite;
+                      margin: 0 auto 20px;
+                  }
+                  @keyframes spin {
+                      to { transform: rotate(360deg); }
+                  }
+                  .hidden { display: none; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <!-- Loading State -->
+                  <div id="loading" class="loading">
+                      <div class="spinner"></div>
+                      <p>Mendeteksi perangkat Anda...</p>
+                  </div>
+
+                  <!-- Main Content -->
+                  <div id="content" class="hidden">
+                      <div class="header">
+                          <h1>📱 Download SIAKAD</h1>
+                          <p>Version: <strong>VERSION_PLACEHOLDER</strong></p>
+                      </div>
+
+                      <div class="detected-box">
+                          <h2>🎯 Perangkat Terdeteksi</h2>
+                          <div id="deviceInfo" class="device-info">Mendeteksi...</div>
+                      </div>
+
+                      <a id="btnAuto" href="#" class="btn-download">
+                          ⬇️ Download untuk HP Ini (Direkomendasikan)
+                      </a>
+
+                      <button onclick="showOptions()" class="btn-download btn-secondary">
+                          📋 Lihat Semua Pilihan Download
+                      </button>
+
+                      <div id="options" class="options hidden">
+                          <h3>Pilih sesuai arsitektur HP:</h3>
+                          <div class="option-grid">
+                              <a href="https://github.com/REPO_PLACEHOLDER/releases/latest/download/siakad-VERSION_PLACEHOLDER-arm64-v8a.apk" class="option-btn">
+                                  <span class="arch">ARM64</span>
+                                  <span class="desc">HP Modern 2018+</span>
+                              </a>
+                              <a href="https://github.com/REPO_PLACEHOLDER/releases/latest/download/siakad-VERSION_PLACEHOLDER-armeabi-v7a.apk" class="option-btn">
+                                  <span class="arch">ARMv7</span>
+                                  <span class="desc">HP Lama 32-bit</span>
+                              </a>
+                              <a href="https://github.com/REPO_PLACEHOLDER/releases/latest/download/siakad-VERSION_PLACEHOLDER-x86_64.apk" class="option-btn">
+                                  <span class="arch">x86_64</span>
+                                  <span class="desc">Emulator/Chromebook</span>
+                              </a>
+                              <a href="https://github.com/REPO_PLACEHOLDER/releases/latest/download/siakad-VERSION_PLACEHOLDER-universal.apk" class="option-btn">
+                                  <span class="arch">Universal</span>
+                                  <span class="desc">Semua HP</span>
+                              </a>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <script>
+                  // GitHub repository info
+                  const REPO = 'REPO_PLACEHOLDER';
+                  const VERSION = 'VERSION_PLACEHOLDER';
+                  const BASE_URL = `https://github.com/${REPO}/releases/latest/download`;
+
+                  // Detect device architecture
+                  function detectArchitecture() {
+                      const ua = navigator.userAgent;
+                      
+                      // Try to get architecture from user agent
+                      let arch = 'universal';
+                      
+                      // Android detection
+                      if (/Android/.test(ua)) {
+                          // Most modern Android devices are arm64-v8a
+                          // Older devices (Android 5-7) might be armeabi-v7a
+                          
+                          // Check for 64-bit indicators
+                          if (/aarch64|arm64|armv8|x86_64/.test(ua) || 
+                              navigator.userAgent.includes('x64')) {
+                              arch = 'arm64-v8a';
+                          } else if (/armv7|armeabi/.test(ua)) {
+                              arch = 'armeabi-v7a';
+                          } else if (/x86_64/.test(ua)) {
+                              arch = 'x86_64';
+                          } else if (/x86/.test(ua)) {
+                              arch = 'x86';
+                          } else {
+                              // Default for modern Android - most likely arm64
+                              arch = 'arm64-v8a';
+                          }
+                      }
+                      
+                      return arch;
+                  }
+
+                  // Get readable arch name
+                  function getArchName(arch) {
+                      const names = {
+                          'arm64-v8a': 'ARM64 (64-bit) - HP Modern',
+                          'armeabi-v7a': 'ARMv7 (32-bit) - HP Lama',
+                          'x86_64': 'x86_64 - Emulator',
+                          'x86': 'x86 - Emulator Lama',
+                          'universal': 'Universal - Semua HP'
+                      };
+                      return names[arch] || arch;
+                  }
+
+                  // Initialize
+                  function init() {
+                      // Simulate detection delay for UX
+                      setTimeout(() => {
+                          const arch = detectArchitecture();
+                          const filename = `siakad-${VERSION}-${arch}.apk`;
+                          const downloadUrl = `${BASE_URL}/${filename}`;
+                          
+                          // Update UI
+                          document.getElementById('loading').classList.add('hidden');
+                          document.getElementById('content').classList.remove('hidden');
+                          document.getElementById('deviceInfo').textContent = getArchName(arch);
+                          document.getElementById('btnAuto').href = downloadUrl;
+                          
+                          // Auto-download after 2 seconds (optional)
+                          // setTimeout(() => {
+                          //     window.location.href = downloadUrl;
+                          // }, 2000);
+                      }, 1000);
+                  }
+
+                  function showOptions() {
+                      document.getElementById('options').classList.remove('hidden');
+                  }
+
+                  // Run on load
+                  init();
+              </script>
+          </body>
+          </html>
+          HTMLEOF
+
+          # Replace placeholders
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/g" _site/index.html
+          sed -i "s|REPO_PLACEHOLDER|${REPO}|g" _site/index.html
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
