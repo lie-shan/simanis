@@ -69,7 +69,7 @@ jobs:
         run: |
           cat > release/device_compatibility.json << EOF
           {
-            "version": "${{ github.ref_name || 'v' + github.event.inputs.version }}",
+            "name": "build-android-${{ format('v{0}', github.ref_name || github.event.inputs.version) }}",
             "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "build_number": "${{ github.run_number }}",
             "device_profiles": {
@@ -175,7 +175,7 @@ jobs:
       - name: Generate release notes
         run: |
           cat > release/RELEASE_NOTES.md << EOF
-          # SIAKAD App Release ${{ github.ref_name || 'v' + github.event.inputs.version }}
+          # SIAKAD App Release ${format('v{0}', github.ref_name || github.event.inputs.version)}
           
           ## 🚀 Automatic Device Optimization
           
@@ -233,13 +233,13 @@ jobs:
 
       - name: Generate release description
         run: |
-          python3 .github/scripts/generate-release-description.py
+          python .github/scripts/generate-release-description.py
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name || 'v' + github.event.inputs.version }}
-          name: SIAKAD App ${{ github.ref_name || 'v' + github.event.inputs.version }}
+          tag_name: ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
+          name: SIAKAD App ${{ github.ref_name || format('v{0}', github.event.inputs.version) }}
           body_path: release_description.md
           files: |
             release/*.apk
