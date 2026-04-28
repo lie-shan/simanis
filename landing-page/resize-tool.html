@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resize Screenshot SIMANIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #006747 0%, #004d36 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .upload-box {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .upload-box h2 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px dashed #006747;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            background: #e8f5e9;
+        }
+
+        .file-input input {
+            display: none;
+        }
+
+        .file-input label {
+            display: block;
+            cursor: pointer;
+            color: #006747;
+            font-weight: 600;
+        }
+
+        .preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .preview img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: #006747;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #004d36;
+        }
+
+        .download-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .step {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step h3 {
+            color: #006747;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Resize Screenshot SIMANIS</h1>
+
+        <div class="step">
+            <h3>📋 Target: 1080 x 1920 px</h3>
+            <p>Upload screenshot Anda, sistem akan otomatis resize ke ukuran yang tepat untuk landing page.</p>
+        </div>
+
+        <div class="upload-box">
+            <h2>📱 Screenshot 1 - Login SIMANIS</h2>
+            <div class="file-input">
+                <input type="file" id="file1" accept="image/*" onchange="resizeImage(this, 'screenshot1.jpg')">
+                <label for="file1">Klik untuk upload gambar</label>
+            </div>
+            <div class="preview" id="preview1"></div>
+            <button class="download-btn" id="btn1" disabled onclick="downloadImage('screenshot1.jpg')">Download screenshot1.jpg</button>
+        </div>
+
+        <div class="upload-box">
+            <h2>📷 Screenshot 2 - QR Presensi</h2>
+            <div class="file-input">
+                <input type="file" id="file2" accept="image/*" onchange="resizeImage(this, 'screenshot2.jpg')">
+                <label for="file2">Klik untuk upload gambar</label>
+            </div>
+            <div class="preview" id="preview2"></div>
+            <button class="download-btn" id="btn2" disabled onclick="downloadImage('screenshot2.jpg')">Download screenshot2.jpg</button>
+        </div>
+
+        <div class="upload-box">
+            <h2>🏠 Screenshot 3 - Dashboard</h2>
+            <div class="file-input">
+                <input type="file" id="file3" accept="image/*" onchange="resizeImage(this, 'screenshot3.jpg')">
+                <label for="file3">Klik untuk upload gambar</label>
+            </div>
+            <div class="preview" id="preview3"></div>
+            <button class="download-btn" id="btn3" disabled onclick="downloadImage('screenshot3.jpg')">Download screenshot3.jpg</button>
+        </div>
+
+        <div class="upload-box">
+            <h2>📋 Screenshot 4 - Menu Presensi</h2>
+            <div class="file-input">
+                <input type="file" id="file4" accept="image/*" onchange="resizeImage(this, 'screenshot4.jpg')">
+                <label for="file4">Klik untuk upload gambar</label>
+            </div>
+            <div class="preview" id="preview4"></div>
+            <button class="download-btn" id="btn4" disabled onclick="downloadImage('screenshot4.jpg')">Download screenshot4.jpg</button>
+        </div>
+
+        <p class="info">✅ Setelah download, pindahkan file ke folder landing-page</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const TARGET_WIDTH = 1080;
+        const TARGET_HEIGHT = 1920;
+        let resizedImages = {};
+
+        function resizeImage(input, filename) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Set canvas size
+                    canvas.width = TARGET_WIDTH;
+                    canvas.height = TARGET_HEIGHT;
+
+                    // Clear canvas
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillRect(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+
+                    // Calculate scale to fit while maintaining aspect ratio
+                    const scale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+                    const scaledWidth = img.width * scale;
+                    const scaledHeight = img.height * scale;
+
+                    // Center the image
+                    const x = (TARGET_WIDTH - scaledWidth) / 2;
+                    const y = (TARGET_HEIGHT - scaledHeight) / 2;
+
+                    // Draw image
+                    ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+
+                    // Store resized image
+                    resizedImages[filename] = canvas.toDataURL('image/jpeg', 0.95);
+
+                    // Show preview
+                    const previewId = 'preview' + filename.replace('screenshot', '').replace('.jpg', '');
+                    document.getElementById(previewId).innerHTML = 
+                        '<p style="color: #006747; font-weight: 600; margin-bottom: 0.5rem;">✅ Berhasil resize!</p>' +
+                        '<img src="' + resizedImages[filename] + '" style="max-width: 200px;">' +
+                        '<p style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">Dimensi: 1080 x 1920 px</p>';
+
+                    // Enable download button
+                    const btnId = 'btn' + filename.replace('screenshot', '').replace('.jpg', '');
+                    document.getElementById(btnId).disabled = false;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function downloadImage(filename) {
+            if (!resizedImages[filename]) return;
+
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = resizedImages[filename];
+            link.click();
+        }
+    </script>
+</body>
+</html>

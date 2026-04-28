@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#0a0f0c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SIMANIS - Sistem Informasi Akademik Nurul Iman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #006747;
+            --primary-dark: #004d36;
+            --primary-light: #00a86b;
+            --gold: #c9a227;
+            --gold-light: #e8d5a3;
+            --dark-bg: #0a0f0c;
+            --dark-card: rgba(255, 255, 255, 0.03);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-light: #e8f5e9;
+            --text-muted: #8fa89c;
+            --white: #ffffff;
+            --gradient-1: linear-gradient(135deg, #006747 0%, #00a86b 50%, #c9a227 100%);
+            --gradient-2: linear-gradient(135deg, #004d36 0%, #006747 100%);
+            --shadow-glow: 0 0 40px rgba(0, 167, 107, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            background: var(--dark-bg);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .gradient-orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            opacity: 0.15;
+            animation-delay: 0s;
+        }
+
+        .gradient-orb:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            background: var(--gold);
+            bottom: -100px;
+            left: -100px;
+            opacity: 0.1;
+            animation-delay: -5s;
+        }
+
+        .gradient-orb:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            background: var(--primary-light);
+            top: 50%;
+            left: 30%;
+            opacity: 0.08;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(20px, 30px) scale(1.05); }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 15, 12, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 15, 12, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--white);
+            text-decoration: none;
+            text-shadow: 0 0 20px rgba(201, 162, 39, 0.5);
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 167, 107, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(0, 167, 107, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-1);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn-nav {
+            background: var(--gradient-1);
+            color: white !important;
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 167, 107, 0.4);
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 167, 107, 0.5);
+        }
+
+        .btn-nav::after {
+            display: none !important;
+        }
+
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--white);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 7rem 2rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--gold-light);
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge .sparkle {
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero-content h1 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gold-light) 50%, var(--white) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-content p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1rem 2.25rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 167, 107, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 167, 107, 0.5);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: transparent;
+            color: var(--white);
+            padding: 1rem 2.25rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass);
+            border-color: var(--primary-light);
+            transform: translateY(-3px);
+        }
+
+        /* Hero Image */
+        .hero-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-mockup {
+            width: 100%;
+            max-width: 320px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 40px;
+            padding: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(0, 167, 107, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: rotate(-3deg);
+            transition: all 0.5s ease;
+            animation: floatPhone 6s ease-in-out infinite;
+        }
+
+        @keyframes floatPhone {
+            0%, 100% { transform: rotate(-3deg) translateY(0); }
+            50% { transform: rotate(-3deg) translateY(-20px); }
+        }
+
+        .phone-mockup:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                0 0 120px rgba(0, 167, 107, 0.3);
+        }
+
+        .phone-screen {
+            background: var(--dark-bg);
+            border-radius: 32px;
+            overflow: hidden;
+            aspect-ratio: 9/19;
+            border: 1px solid var(--glass-border);
+        }
+
+        .phone-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Floating Elements */
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--white);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: floatCard 8s ease-in-out infinite;
+        }
+
+        .floating-card:nth-child(1) {
+            top: 20%;
+            right: -20px;
+            animation-delay: 0s;
+        }
+
+        .floating-card:nth-child(2) {
+            bottom: 30%;
+            left: -30px;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        .floating-card .icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--dark-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2.25rem;
+            border-radius: 24px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 167, 107, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 167, 107, 0.1);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 103, 71, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--white);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Screenshots Section */
+        .screenshots {
+            padding: 8rem 2rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 103, 71, 0.03) 50%, transparent 100%);
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .screenshot-card {
+            background: var(--dark-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 0.75rem;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screenshot-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.03) 50%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        .screenshot-card:hover::after {
+            animation: shine 0.6s ease-out;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        .screenshot-card:hover {
+            transform: scale(1.05) translateY(-10px);
+            border-color: rgba(0, 167, 107, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 167, 107, 0.15);
+        }
+
+        .screenshot-card img {
+            width: 100%;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot-label {
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 8rem 2rem;
+            position: relative;
+            text-align: center;
+        }
+
+        .download::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 167, 107, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .download-content {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .download h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .download p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--gradient-1);
+            color: var(--white);
+            padding: 1.25rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.15rem;
+            box-shadow: 0 8px 30px rgba(0, 167, 107, 0.4);
+            transition: all 0.3s;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 167, 107, 0.5);
+        }
+
+        .download-info {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            margin-top: 2.5rem;
+        }
+
+        .download-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            background: var(--glass);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+            text-shadow: 0 0 10px rgba(201, 162, 39, 0.5);
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer-bottom p:first-child {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Smooth Scroll & Mobile Fix */
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+                height: 100%;
+                align-content: center;
+            }
+
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+
+            .hero-content p {
+                margin: 0 auto 2rem;
+            }
+
+            .phone-mockup {
+                max-width: 240px;
+            }
+
+            .hero-image {
+                margin-top: 0;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .screenshots-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 15, 12, 0.98);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0.75rem;
+                border-bottom: 1px solid var(--glass-border);
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 0.75rem 1rem;
+                width: 100%;
+                text-align: center;
+            }
+
+            .mobile-menu {
+                display: block;
+                z-index: 1001;
+                font-size: 1.5rem;
+                padding: 0.5rem;
+            }
+
+            .hero {
+                padding: 7.5rem 1rem 2rem;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .hero-container {
+                gap: 2rem;
+                height: 100%;
+                align-content: center;
+            }
+
+            .hero-content {
+                text-align: center;
+                width: 100%;
+                padding-top: 1rem;
+            }
+
+            .hero-content h1 {
+                font-size: 1.5rem;
+                line-height: 1.35;
+                margin-bottom: 1rem;
+                padding: 0 0.5rem;
+            }
+
+            .hero-content p {
+                font-size: 0.875rem;
+                line-height: 1.7;
+                color: rgba(232, 245, 233, 0.85);
+                padding: 0 0.25rem;
+                margin-bottom: 0;
+            }
+
+            .hero-badge {
+                font-size: 0.75rem;
+                padding: 0.5rem 1rem;
+                margin-top: 0.5rem;
+                margin-bottom: 1.25rem;
+                display: inline-flex;
+            }
+
+            .hero-image {
+                margin-top: 0.5rem;
+            }
+
+            .phone-mockup {
+                max-width: 180px;
+                padding: 8px;
+            }
+
+            .floating-card {
+                display: none;
+            }
+
+            .features, .screenshots, .download {
+                padding: 3rem 1rem;
+            }
+
+            .section-header {
+                margin-bottom: 2rem;
+                padding: 0 0.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.4rem;
+                line-height: 1.3;
+                margin-bottom: 0.75rem;
+            }
+
+            .section-header p {
+                font-size: 0.85rem;
+                line-height: 1.6;
+                color: var(--text-muted);
+                padding: 0 0.25rem;
+            }
+
+            .section-label {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.875rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 0.875rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+                text-align: center;
+            }
+
+            .feature-icon {
+                width: 52px;
+                height: 52px;
+                font-size: 1.6rem;
+                margin: 0 auto 1rem;
+                border-radius: 16px;
+            }
+
+            .feature-card h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.625rem;
+                color: var(--white);
+            }
+
+            .feature-card p {
+                font-size: 0.85rem;
+                line-height: 1.6;
+                color: var(--text-muted);
+            }
+
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                margin-top: 1.5rem;
+            }
+
+            .screenshot-card {
+                padding: 0.5rem;
+                border-radius: 16px;
+            }
+
+            .screenshot-card img {
+                border-radius: 12px;
+            }
+
+            .screenshot-label {
+                font-size: 0.8rem;
+                margin-top: 0.5rem;
+            }
+
+            .download h2 {
+                font-size: 1.4rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.3;
+            }
+
+            .download p {
+                font-size: 0.85rem;
+                line-height: 1.6;
+                padding: 0 0.5rem;
+                margin-bottom: 1.75rem;
+            }
+
+            .download-btn {
+                width: 100%;
+                max-width: 280px;
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            .download-info {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-top: 1.5rem;
+            }
+
+            .download-info-item {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.875rem;
+            }
+
+            footer {
+                padding: 2rem 1rem;
+            }
+
+            .footer-logo {
+                font-size: 1.25rem;
+            }
+
+            .footer-links {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+
+            .footer-bottom {
+                font-size: 0.75rem;
+            }
+
+            .nav-container {
+                padding: 0 1rem;
+                height: 60px;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 6.5rem 0.75rem 2rem;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .hero-content h1 {
+                font-size: 1.35rem;
+                line-height: 1.35;
+            }
+
+            .hero-content p {
+                font-size: 0.82rem;
+                line-height: 1.65;
+            }
+
+            .hero-badge {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.75rem;
+                margin-top: 0.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.25rem;
+            }
+
+            .section-header p {
+                font-size: 0.8rem;
+            }
+
+            .feature-card h3 {
+                font-size: 1rem;
+            }
+
+            .feature-card p {
+                font-size: 0.8rem;
+            }
+
+            .phone-mockup {
+                max-width: 200px;
+            }
+
+            .download h2 {
+                font-size: 1.25rem;
+            }
+
+            .download p {
+                font-size: 0.8rem;
+            }
+
+            .download-btn {
+                font-size: 0.95rem;
+                padding: 0.875rem 1.25rem;
+            }
+
+            .features, .screenshots, .download {
+                padding: 2.5rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .hero {
+                padding: 6rem 0.75rem 2rem;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .hero-content h1 {
+                font-size: 1.2rem;
+            }
+
+            .hero-content p {
+                font-size: 0.78rem;
+            }
+
+            .phone-mockup {
+                max-width: 140px;
+            }
+
+            .btn-primary, .btn-secondary {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.15rem;
+            }
+
+            .download h2 {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="gradient-orb"></div>
+        <div class="gradient-orb"></div>
+        <div class="gradient-orb"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">📚</div>
+                SIMANIS
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Fitur</a>
+                <a href="#screenshots">Screenshot</a>
+                <a href="#download" class="btn-nav">Download</a>
+            </div>
+            <button class="mobile-menu" onclick="toggleMenu()">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content reveal">
+                <div class="hero-badge">
+                    <span class="sparkle">✨</span> Aplikasi Akademik Modern
+                </div>
+                <h1>Sistem Informasi Akademik Nurul Iman</h1>
+                <p>Platform manajemen pendidikan terintegrasi dengan presensi QR code, pembelajaran digital, dan informasi akademik real-time dalam satu aplikasi yang elegan.</p>
+
+            </div>
+            <div class="hero-image reveal">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <img src="screenshot1.jpg" alt="SIMANIS App" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22800%22><defs><linearGradient id=%22g%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%23006747%22/><stop offset=%22100%25%22 style=%22stop-color:%2300a86b%22/></linearGradient></defs><rect fill=%22url(%23g)%22 width=%22400%22 height=%22800%22/><text fill=%22white%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 font-family=%22Arial%22>📱 SIMANIS</text></svg>'">
+                    </div>
+                </div>
+                <div class="floating-elements">
+                    <div class="floating-card">
+                        <div class="icon">📍</div>
+                        <div>
+                            <div style="font-weight: 600;">Presensi Aktif</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">QR Code Ready</div>
+                        </div>
+                    </div>
+                    <div class="floating-card">
+                        <div class="icon">📡</div>
+                        <div>
+                            <div style="font-weight: 600;">Real-time Sync</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Data Terkini</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-label">✨ Fitur Unggulan</div>
+                <h2>Semua yang Anda Butuhkan</h2>
+                <p>SIMANIS menghadirkan ekosistem akademik lengkap dengan teknologi modern untuk pengalaman belajar yang optimal</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon">📱</div>
+                    <h3>QR Code Presensi</h3>
+                    <p>Sistem presensi modern menggunakan QR code scan. Cepat, akurat, dan anti manipulasi dengan verifikasi realtime.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon">📚</div>
+                    <h3>Jadwal & Tugas</h3>
+                    <p>Kelola jadwal pelajaran, tugas, dan kuis dalam satu dashboard. Dapatkan notifikasi pengingat otomatis.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon">📊</div>
+                    <h3>Nilai & Raport</h3>
+                    <p>Akses nilai dan raport elektronik kapan saja. Visualisasi perkembangan akademik dengan grafik interaktif.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon">📹</div>
+                    <h3>Video Pembelajaran</h3>
+                    <p>Perpustakaan video pembelajaran terorganisir berdasarkan mata pelajaran. Belajar kapan saja, di mana saja.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon">🎓</div>
+                    <h3>Info Sekolah</h3>
+                    <p>Pusat informasi kegiatan sekolah, pengumuman, dan berita terkini. Tetap terhubung dengan komunitas sekolah.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Keamanan Data</h3>
+                    <p>Proteksi data dengan enkripsi modern. Privasi dan keamanan informasi akademik adalah prioritas kami.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots" id="screenshots">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-label">📱 Tampilan Aplikasi</div>
+                <h2>Interface Modern & Elegan</h2>
+                <p>Desain UI/UX yang intuitif dengan fokus pada kemudahan penggunaan dan estetika profesional</p>
+            </div>
+            <div class="screenshots-grid">
+                <div class="screenshot-card reveal">
+                    <img src="screenshot1.jpg" alt="Login SIMANIS" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22600%22><defs><linearGradient id=%22g1%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%230a0f0c%22/><stop offset=%22100%25%22 style=%22stop-color:%23006747%22/></linearGradient></defs><rect fill=%22url(%23g1)%22 width=%22300%22 height=%22600%22/><text fill=%22white%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2218%22 font-family=%22Arial%22>Login</text></svg>'">
+                    <div class="screenshot-label">Login Screen</div>
+                </div>
+                <div class="screenshot-card reveal">
+                    <img src="screenshot2.jpg" alt="Scan QR Presensi" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22600%22><defs><linearGradient id=%22g2%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%230a0f0c%22/><stop offset=%22100%25%22 style=%22stop-color:%2300a86b%22/></linearGradient></defs><rect fill=%22url(%23g2)%22 width=%22300%22 height=%22600%22/><text fill=%22white%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2218%22 font-family=%22Arial%22>Scan QR</text></svg>'">
+                    <div class="screenshot-label">QR Presensi</div>
+                </div>
+                <div class="screenshot-card reveal">
+                    <img src="screenshot3.jpg" alt="Dashboard SIMANIS" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22600%22><defs><linearGradient id=%22g3%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%230a0f0c%22/><stop offset=%22100%25%22 style=%22stop-color:%23c9a227%22/></linearGradient></defs><rect fill=%22url(%23g3)%22 width=%22300%22 height=%22600%22/><text fill=%22white%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2218%22 font-family=%22Arial%22>Dashboard</text></svg>'">
+                    <div class="screenshot-label">Dashboard</div>
+                </div>
+                <div class="screenshot-card reveal">
+                    <img src="screenshot4.jpg" alt="Menu Presensi" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22600%22><defs><linearGradient id=%22g4%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%230a0f0c%22/><stop offset=%22100%25%22 style=%22stop-color:%23004d36%22/></linearGradient></defs><rect fill=%22url(%23g4)%22 width=%22300%22 height=%22600%22/><text fill=%22white%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2218%22 font-family=%22Arial%22>Presensi</text></svg>'">
+                    <div class="screenshot-label">Menu Presensi</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="download-content reveal">
+            <div class="section-label">🚀 Mulai Sekarang</div>
+            <h2>Siap Menggunakan SIMANIS?</h2>
+            <p>Download aplikasi SIMANIS sekarang dan rasakan kemudahan manajemen akademik modern. Tersedia untuk perangkat Android.</p>
+            <a href="simanis-v1.0.1.apk" class="download-btn" download="simanis-v1.0.1.apk" id="downloadBtn">
+                <span>⬇️</span> Download APK Universal
+            </a>
+            <div class="download-info">
+                <div class="download-info-item">
+                    <span>📱</span> Android 5.0+
+                </div>
+                <div class="download-info-item">
+                    <span>📦</span> 25 MB
+                </div>
+                <div class="download-info-item">
+                    <span>🔒</span> Aman & Terpercaya
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content reveal">
+            <div class="footer-logo">
+                <div class="footer-logo-icon">📚</div>
+                SIMANIS
+            </div>
+            <div class="footer-links">
+                <a href="#features">Fitur</a>
+                <a href="#screenshots">Screenshot</a>
+                <a href="#download">Download</a>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 SIMANIS - Sistem Informasi Akademik Nurul Iman</p>
+                <p>All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll reveal animation
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, index * 100);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('nav') && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                mobileMenu.textContent = '☰';
+            }
+        });
+
+        // Close menu when clicking a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                mobileMenu.textContent = '☰';
+            });
+        });
+
+        // Automatic download handler
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function(e) {
+                // Create a temporary link for automatic download
+                const apkUrl = this.getAttribute('href');
+                const fileName = this.getAttribute('download') || 'simanis-v1.0.1.apk';
+                
+                // Use fetch to trigger download
+                e.preventDefault();
+                
+                const link = document.createElement('a');
+                link.href = apkUrl;
+                link.download = fileName;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show feedback
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span>⏳</span> Mengunduh...';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
