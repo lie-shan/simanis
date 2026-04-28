@@ -308,7 +308,7 @@ class _SchoolSchedulePageState extends State<SchoolSchedulePage> {
             // ── Bottom Navbar ─────────────────────────────────────────────
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: _selectedNavIndex,
                 onTap: (i) {
                   if (i == 0) {

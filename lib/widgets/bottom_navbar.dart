@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'scan_modal.dart';
 
-class SiakadBottomNavBar extends StatelessWidget {
+class SIMANISBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
 
-  const SiakadBottomNavBar({
+  const SIMANISBottomNavBar({
     super.key,
     required this.selectedIndex,
     required this.onTap,

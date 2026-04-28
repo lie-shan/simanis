@@ -177,7 +177,7 @@ class _IzinPageState extends State<IzinPage>
     return Scaffold(
       backgroundColor: _C.surface,
       floatingActionButton: _buildFab(context),
-      bottomNavigationBar: SiakadBottomNavBar(
+      bottomNavigationBar: SIMANISBottomNavBar(
         selectedIndex: 1, // Tetap highlight tab Presensi karena ini sub-halaman Presensi
         onTap: (i) {
           if (i == 1) {

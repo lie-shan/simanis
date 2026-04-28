@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Book icon representing education/SIAKAD -->
+    <group
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="24.3"
+        android:translateY="24.3">
+        <!-- Book base -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M80,20 L40,20 L40,90 L80,90 C86.6,90 92,84.6 92,78 L92,32 C92,25.4 86.6,20 80,20 Z"/>
+        <!-- Book spine -->
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M40,20 L32,20 C25.4,20 20,25.4 20,32 L20,78 C20,84.6 25.4,90 32,90 L40,90 L40,20 Z"/>
+        <!-- Book pages lines -->
+        <path
+            android:fillColor="#BDBDBD"
+            android:pathData="M48,30 L72,30 L72,34 L48,34 Z"/>
+        <path
+            android:fillColor="#BDBDBD"
+            android:pathData="M48,42 L72,42 L72,46 L48,46 Z"/>
+        <path
+            android:fillColor="#BDBDBD"
+            android:pathData="M48,54 L72,54 L72,58 L48,58 Z"/>
+        <path
+            android:fillColor="#BDBDBD"
+            android:pathData="M48,66 L60,66 L60,70 L48,70 Z"/>
+        <!-- Graduation cap -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M56,10 L76,18 L56,26 L36,18 Z"/>
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M76,18 L76,24 L56,32 L56,26 Z"/>
+    </group>
+</vector>

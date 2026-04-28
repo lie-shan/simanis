@@ -38,7 +38,7 @@ class _DataPribadiPageState extends State<DataPribadiPage> {
   final _jenisKelaminController = TextEditingController(text: 'Laki-laki');
   final _alamatController      = TextEditingController(text: 'Jl. Merdeka No. 45, RT 03/RW 08, Kel. Sukajadi, Kec. Sukajadi, Kota Bandung');
   final _teleponController     = TextEditingController(text: '081234567890');
-  final _emailController       = TextEditingController(text: 'ahmad.fauzi@siswa.siakad.id');
+  final _emailController       = TextEditingController(text: 'ahmad.fauzi@siswa.SIMANIS.id');
   final _namaAyahController    = TextEditingController(text: 'Budi Santoso');
   final _namaIbuController     = TextEditingController(text: 'Siti Rahayu');
   final _teleponOrtuController = TextEditingController(text: '082198765432');

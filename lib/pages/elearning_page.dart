@@ -425,7 +425,7 @@ class _ELearningPageState extends State<ELearningPage>
             // ── Bottom Nav ──
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: 0,
                 onTap: (i) {
                   if (i != 0) Navigator.pop(context);

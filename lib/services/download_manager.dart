@@ -130,7 +130,7 @@ class DownloadManager {
       sendTimeout: timeout,
       receiveDataWhenStatusError: true,
       headers: {
-        'User-Agent': 'SIAKAD-App/${_getUserAgent()}',
+        'User-Agent': 'SIMANIS-App/${_getUserAgent()}',
         'Accept': '*/*',
         'Accept-Encoding': 'gzip, deflate',
       },

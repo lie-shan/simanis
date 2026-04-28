@@ -139,8 +139,8 @@ class _PresensiPageState extends State<PresensiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _AppColors.surface,
-      // ── Menggunakan SiakadBottomNavBar dari widgets/bottom_navbar.dart ──
-      bottomNavigationBar: SiakadBottomNavBar(
+      // ── Menggunakan SIMANISBottomNavBar dari widgets/bottom_navbar.dart ──
+      bottomNavigationBar: SIMANISBottomNavBar(
         selectedIndex: _selectedIndex,
         onTap: (i) {
           if (i == 0) {
@@ -302,4 +302,4 @@ class _PresensiPageState extends State<PresensiPage> {
 }
 
 // ── CATATAN: Class _BottomNavBar yang duplikat sudah dihapus.
-//    Gunakan SiakadBottomNavBar dari '../widgets/bottom_navbar.dart' ──
+//    Gunakan SIMANISBottomNavBar dari '../widgets/bottom_navbar.dart' ──

@@ -374,7 +374,7 @@ class _NilaiPageState extends State<NilaiPage> {
             // Bottom Navigation Bar
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: 1, // Presensi selected
                 onTap: (i) {
                   if (i == 0) {

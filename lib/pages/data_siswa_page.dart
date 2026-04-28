@@ -485,7 +485,7 @@ class _DataSiswaPageState extends State<DataSiswaPage>
             // ── Bottom Nav ──
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: _selectedIndex,
                 onTap: (i) {
                   if (i == 1) {

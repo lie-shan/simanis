@@ -142,7 +142,7 @@ class _PengumumanPageState extends State<PengumumanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _AppColors.surface,
-      bottomNavigationBar: SiakadBottomNavBar(
+      bottomNavigationBar: SIMANISBottomNavBar(
         selectedIndex: 3,
         onTap: (i) {
           if (i == 0) {

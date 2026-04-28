@@ -481,6 +481,8 @@ class AssetConfig {
   
   int getMaxConcurrentDownloads() => network['concurrent_downloads'];
   int getDownloadChunkSize() => network['chunk_size'];
+  int getNetworkTimeout() => network['timeout_seconds'];
+  int getMaxRetryAttempts() => network['retry_attempts'];
   
   String getUITheme() => ui['theme'];
   double getFontScaling() => ui['font_scaling'];

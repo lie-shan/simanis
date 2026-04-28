@@ -626,7 +626,7 @@ class _BantuanPageState extends State<BantuanPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('SIAKAD v.2.4.0',
+                Text('SIMANIS v.2.4.0',
                     style: GoogleFonts.manrope(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,

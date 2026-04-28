@@ -24,9 +24,9 @@ class ApiConfig {
   // 6. CLOUDFLARE TUNNEL (URL tetap, lebih stabil):
   // Install: winget install --id Cloudflare.cloudflared
   // Login: cloudflared tunnel login
-  // Create: cloudflared tunnel create siakad
-  // Route: cloudflared tunnel route dns siakad siakad.yourdomain.com
-  // Run: cloudflared tunnel run siakad
+  // Create: cloudflared tunnel create SIMANIS
+  // Route: cloudflared tunnel route dns SIMANIS SIMANIS.yourdomain.com
+  // Run: cloudflared tunnel run SIMANIS
   static const String baseUrl = 'https://api.sinan.my.id';
 
   // API Endpoints

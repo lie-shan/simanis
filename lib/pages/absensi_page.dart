@@ -275,7 +275,7 @@ class _AbsensiPageState extends State<AbsensiPage>
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: _selectedNavIndex,
                 onTap: (i) {
                   if (i == 2) {

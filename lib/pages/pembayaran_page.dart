@@ -690,7 +690,7 @@ class _PembayaranPageState extends State<PembayaranPage>
       child: Scaffold(
       backgroundColor: _C.surface,
       floatingActionButton: _buildFab(context),
-      bottomNavigationBar: SiakadBottomNavBar(
+      bottomNavigationBar: SIMANISBottomNavBar(
         selectedIndex: 1,
         onTap: (_) => Navigator.pop(context),
       ),

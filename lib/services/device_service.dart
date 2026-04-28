@@ -83,19 +83,21 @@ class DeviceService {
     final memoryInfo = await _getAndroidMemoryInfo();
     
     final totalMemory = memoryInfo?['totalMemory'] as int?;
-    final cores = androidInfo.hardware['cores'] as int?;
+    // hardware is a String in device_info_plus 10.x
+    // cores info not directly available, will be estimated from brand/model
+    final int? cores = null;
     
     return DeviceInfo(
       brand: androidInfo.brand,
       model: androidInfo.model,
       totalMemory: totalMemory,
       storageSize: await _getStorageSize(),
-      processor: androidInfo.hardware['processor'] as String?,
+      processor: androidInfo.hardware,
       cores: cores,
-      screenSize: _calculateScreenSize(androidInfo.displayMetrics),
-      screenWidth: androidInfo.displayMetrics.widthPx.toInt(),
-      screenHeight: androidInfo.displayMetrics.heightPx.toInt(),
-      deviceType: _getDeviceType(androidInfo.displayMetrics),
+      screenSize: null,
+      screenWidth: null,
+      screenHeight: null,
+      deviceType: 'phone',
       performanceCategory: _calculatePerformanceCategory(totalMemory, androidInfo.brand, androidInfo.model),
     );
   }

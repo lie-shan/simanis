@@ -32,7 +32,7 @@ class AkunPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _AppColors.surface,
-      bottomNavigationBar: SiakadBottomNavBar(
+      bottomNavigationBar: SIMANISBottomNavBar(
         selectedIndex: 4,
         onTap: (i) {
           if (i == 0) {
@@ -149,7 +149,7 @@ class AkunPage extends StatelessWidget {
                   // ── Version ──
                   Center(
                     child: Text(
-                      'SIAKAD v.2.4.0',
+                      'SIMANIS v.2.4.0',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color:

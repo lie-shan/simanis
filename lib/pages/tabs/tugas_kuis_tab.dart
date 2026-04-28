@@ -1381,7 +1381,7 @@ class _KuisPageState extends State<KuisPage> with TickerProviderStateMixin {
     );
   }
 
-  static const _kuisChannel = MethodChannel('id.sinan.siakad/kuis_lock');
+  static const _kuisChannel = MethodChannel('id.sinan.SIMANIS/kuis_lock');
 
   Future<void> _lockScreen() async {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

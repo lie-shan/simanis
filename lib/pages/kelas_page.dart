@@ -379,7 +379,7 @@ class _KelasPageState extends State<KelasPage> {
             // ── Bottom Navbar (Stack, sesuai bottom_navbar.dart) ──
             Align(
               alignment: Alignment.bottomCenter,
-              child: SiakadBottomNavBar(
+              child: SIMANISBottomNavBar(
                 selectedIndex: _selectedNavIndex,
                 onTap: (i) {
                   if (i == 0) {

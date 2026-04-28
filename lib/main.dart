@@ -24,7 +24,7 @@ void main() async {
   // Initialize API service with saved token
   await ApiService().init();
   
-  runApp(const SiakadApp());
+  runApp(const SimanisApp());
 }
 
 // ─── Color Palette (from Tailwind config) ─────────────────────────────────────
@@ -86,13 +86,13 @@ class AppTheme {
 }
 
 // ─── App ─────────────────────────────────────────────────────────────────────
-class SiakadApp extends StatelessWidget {
-  const SiakadApp({super.key});
+class SimanisApp extends StatelessWidget {
+  const SimanisApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SIAKAD',
+      title: 'SIMANIS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       locale: const Locale('id', 'ID'),
@@ -438,7 +438,7 @@ class _BrandingSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          'Login SIAKAD',
+          'Login SIMANIS',
           style: GoogleFonts.manrope(
             fontSize: 36,
             fontWeight: FontWeight.w800,
@@ -627,7 +627,7 @@ class _HelpSection extends StatelessWidget {
   Future<void> _openWhatsApp() async {
     // Ganti nomor WhatsApp admin di bawah ini (format: kode negara + nomor tanpa 0 di depan)
     const phone = '6281234567890';
-    const message = 'Halo Admin, saya ingin mendaftar akun SIAKAD.';
+    const message = 'Halo Admin, saya ingin mendaftar akun SIMANIS.';
     final uri = Uri.parse(
       'https://wa.me/$phone?text=${Uri.encodeComponent(message)}',
     );
