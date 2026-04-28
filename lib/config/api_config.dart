@@ -27,7 +27,7 @@ class ApiConfig {
   // Create: cloudflared tunnel create SIMANIS
   // Route: cloudflared tunnel route dns SIMANIS SIMANIS.yourdomain.com
   // Run: cloudflared tunnel run SIMANIS
-  static const String baseUrl = 'https://api.sinan.my.id';
+  static const String baseUrl = 'https://siakad-api.trycloudflare.com';
 
   // API Endpoints
   static const String apiVersion = '/api';
