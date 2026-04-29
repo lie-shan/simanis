@@ -79,11 +79,11 @@ android {
     }
 
     // Custom APK filename: simanis-v[versionName].apk
-    applicationVariants.all {
-        val variant = this
-        outputs.all {
-            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "simanis-v${variant.versionName}.apk"
+    androidComponents {
+        onVariants(selector().all()) { variant ->
+            variant.outputs.forEach { output ->
+                output.outputFileName.set("simanis-v${variant.versionName}.apk")
+            }
         }
     }
 }
