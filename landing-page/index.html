@@ -1447,27 +1447,18 @@
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) {
             downloadBtn.addEventListener('click', function(e) {
-                // Create a temporary link for automatic download
-                const apkUrl = this.getAttribute('href');
-                const fileName = this.getAttribute('download') || 'simanis-v1.0.1.apk';
-                
-                // Use fetch to trigger download
                 e.preventDefault();
+                const apkUrl = this.getAttribute('href');
                 
-                const link = document.createElement('a');
-                link.href = apkUrl;
-                link.download = fileName;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Force download by changing window location
+                window.location.href = apkUrl;
                 
                 // Show feedback
                 const originalText = this.innerHTML;
                 this.innerHTML = '<span>⏳</span> Mengunduh...';
                 setTimeout(() => {
                     this.innerHTML = originalText;
-                }, 2000);
+                }, 3000);
             });
         }
     </script>
