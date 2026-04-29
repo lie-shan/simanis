@@ -77,6 +77,16 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Custom APK filename: simanis-v[versionName].apk
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            val newName = "simanis-v${variant.versionName}.apk"
+            output.outputFileName = newName
+        }
+    }
 }
 
 flutter {
