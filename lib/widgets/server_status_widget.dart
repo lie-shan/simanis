@@ -16,13 +16,15 @@ class ServerStatusWidget extends StatefulWidget {
 
 class _ServerStatusWidgetState extends State<ServerStatusWidget> {
   bool _isServerDown = false;
-  bool _showBanner = false;
+  bool _showAlert = false;
   Timer? _checkTimer;
 
   @override
   void initState() {
     super.initState();
-    _checkServerStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkServerStatus();
+    });
     // Check server status every 30 seconds
     _checkTimer = Timer.periodic(
       const Duration(seconds: 30),
@@ -40,99 +42,88 @@ class _ServerStatusWidgetState extends State<ServerStatusWidget> {
     final isReachable = await ApiService().isServerReachable();
     
     if (mounted) {
-      setState(() {
-        if (!isReachable && !_isServerDown) {
-          // Server just went down
+      if (!isReachable && !_isServerDown) {
+        // Server just went down
+        setState(() {
           _isServerDown = true;
-          _showBanner = true;
-        } else if (isReachable && _isServerDown) {
-          // Server back online
-          _isServerDown = false;
-          _showBanner = true;
-        }
-      });
-
-      // Auto hide banner after 5 seconds if server is back
-      if (isReachable && _showBanner) {
-        Future.delayed(const Duration(seconds: 5), () {
-          if (mounted) {
-            setState(() => _showBanner = false);
-          }
+          _showAlert = true;
         });
+        _showServerAlert();
+      } else if (isReachable && _isServerDown) {
+        // Server back online
+        setState(() {
+          _isServerDown = false;
+          _showAlert = true;
+        });
+        _showServerBackAlert();
       }
     }
   }
 
-  void _hideBanner() {
-    setState(() => _showBanner = false);
+  void _showServerAlert() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.cloud_off, color: Colors.red, size: 48),
+        title: const Text('Server Offline'),
+        content: const Text(
+          'Server sedang offline. Beberapa fitur mungkin tidak tersedia. Silakan hubungi administrator.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() => _showAlert = false);
+            },
+            child: const Text('TUTUP'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _checkServerStatus();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('COBA LAGI'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showServerBackAlert() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.cloud_done, color: Colors.green, size: 48),
+        title: const Text('Server Online'),
+        content: const Text('Server kembali online. Semua fitur sudah tersedia.'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() => _showAlert = false);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+
+    // Auto dismiss after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+        setState(() => _showAlert = false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Server Status Banner
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          height: _showBanner ? null : 0,
-          child: _showBanner
-              ? MaterialBanner(
-                  content: Row(
-                    children: [
-                      Icon(
-                        _isServerDown ? Icons.cloud_off : Icons.cloud_done,
-                        color: _isServerDown ? Colors.red : Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _isServerDown
-                              ? 'Server sedang offline. Beberapa fitur mungkin tidak tersedia.'
-                              : 'Server kembali online.',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: _isServerDown 
-                      ? Colors.red.shade700 
-                      : Colors.green.shade700,
-                  actions: [
-                    TextButton(
-                      onPressed: _hideBanner,
-                      child: Text(
-                        'TUTUP',
-                        style: TextStyle(
-                          color: _isServerDown 
-                              ? Colors.red.shade100 
-                              : Colors.green.shade100,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    if (_isServerDown)
-                      TextButton(
-                        onPressed: () {
-                          _checkServerStatus();
-                        },
-                        child: const Text(
-                          'COBA LAGI',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
-                )
-              : null,
-        ),
-        // Main Content
-        Expanded(child: widget.child),
-      ],
+    return SafeArea(
+      child: widget.child,
     );
   }
 }
