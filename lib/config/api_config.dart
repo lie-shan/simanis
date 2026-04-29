@@ -21,13 +21,11 @@ class ApiConfig {
   // Contoh: https://xxxx.ngrok-free.app (tanpa / di akhir)
   // static const String baseUrl = 'https://xxxx.ngrok-free.app';
 
-  // 6. CLOUDFLARE TUNNEL (URL tetap, lebih stabil):
-  // Install: winget install --id Cloudflare.cloudflared
-  // Login: cloudflared tunnel login
-  // Create: cloudflared tunnel create SIMANIS
-  // Route: cloudflared tunnel route dns SIMANIS SIMANIS.yourdomain.com
-  // Run: cloudflared tunnel run SIMANIS
-  static const String baseUrl = 'https://siakad-api.trycloudflare.com';
+  // 6. CLOUDFLARE TUNNEL - PERMANENT DOMAIN
+  // Domain: api.sinan.my.id (via Cloudflare Tunnel)
+  // Setup: Jalankan setup-permanent-tunnel.bat
+  // Status: Production ready dengan HTTPS
+  static const String baseUrl = 'https://api.sinan.my.id';
 
   // API Endpoints
   static const String apiVersion = '/api';
@@ -110,16 +108,40 @@ class ApiConfig {
   // Timeout settings
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
-  
+
+  // HTTPS/TLS Settings untuk Cloudflare
+  static const bool validateCertificates = true;  // Cloudflare cert valid
+  static const bool followRedirects = true;
+  static const int maxRedirects = 5;
+
   // Headers
   static Map<String, String> get headers => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
-  
+
   static Map<String, String> headersWithAuth(String token) => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'Authorization': 'Bearer $token',
   };
+
+  // Dio BaseOptions untuk HTTPS
+  static Map<String, dynamic> get dioBaseOptions => {
+    'baseUrl': baseUrl,
+    'connectTimeout': connectionTimeout,
+    'receiveTimeout': receiveTimeout,
+    'headers': headers,
+    'responseType': 'json',
+    'followRedirects': followRedirects,
+    'maxRedirects': maxRedirects,
+    // Untuk Cloudflare Tunnel, certificate sudah valid
+    // Tidak perlu badCertificateCallback
+  };
+
+  // Check if using HTTPS
+  static bool get isHttps => baseUrl.startsWith('https://');
+
+  // Environment info
+  static String get environment => isHttps ? 'production' : 'development';
 }

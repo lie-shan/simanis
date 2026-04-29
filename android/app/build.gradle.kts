@@ -39,6 +39,20 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "mode"
+
+    productFlavors {
+        create("dev") {
+            dimension = "mode"
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "SIAKAD Dev")
+        }
+        create("prod") {
+            dimension = "mode"
+            resValue("string", "app_name", "SIAKAD")
+        }
+    }
+
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as? String ?: ""
@@ -58,6 +72,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

@@ -1,0 +1,67 @@
+# ==========================================
+# Cloudflare Tunnel Configuration
+# SIMANIS - Sistem Informasi Akademik
+# ==========================================
+# Usage: cloudflared tunnel --config config.yml run SIMANIS
+
+# Tunnel name dan ID (dari 'cloudflared tunnel create SIMANIS')
+tunnel: 545a623f-c667-479e-8237-bc9c6b8bfdeb
+
+# Credentials file (Windows path)
+# File ini otomatis dibuat saat tunnel create
+credentials-file: C:\Users\Lie Shan\.cloudflared\545a623f-c667-479e-8237-bc9c6b8bfdeb.json
+
+# Ingress rules - mapping domain ke services lokal
+ingress:
+  # API Backend - SIMANIS API
+  - hostname: api.sinan.my.id
+    service: http://localhost:3000
+    originRequest:
+      # Enable HTTPS connections from tunnel to origin
+      noTLSVerify: true
+      # Connect timeout
+      connectTimeout: 30s
+      # TLS timeout
+      tlsTimeout: 10s
+      # TCP keepalive
+      tcpKeepAlive: 30s
+      # Disable chunk encoding for better compatibility
+      disableChunkedEncoding: false
+
+  # Default catch-all (opsional)
+  - service: http_status:404
+
+# ==========================================
+# Additional Settings
+# ==========================================
+
+# Protocol to use for connecting to Cloudflare edge
+# auto: Automatically detect the best protocol
+# http2: Use HTTP/2 protocol
+# quic: Use QUIC protocol (UDP)
+protocol: auto
+
+# Log level: debug, info, warning, error, fatal
+logfile: cloudflared.log
+loglevel: info
+
+# Transport settings
+transport-loglevel: warn
+
+# Graceful shutdown period
+grace-period: 30s
+
+# Metrics (optional - untuk monitoring)
+metrics: localhost:45678
+
+# Retries
+retries: 5
+
+# Heartbeat interval (duration format)
+heartbeat-interval: 5s
+
+# ==========================================
+# Environment Variables yang bisa digunakan:
+# TUNNEL_TOKEN: untuk authenticated tunnel
+# TUNNEL_METRICS: metrics endpoint
+# ==========================================

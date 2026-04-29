@@ -99,19 +99,26 @@ class DownloadManager {
     if (_isInitialized) return;
 
     try {
+      // Skip download manager on web platform (not supported)
+      if (kIsWeb) {
+        _isInitialized = true;
+        debugPrint('DownloadManager: Web platform detected - download disabled');
+        return;
+      }
+
       _dio = Dio();
       _assetConfig = AssetConfig();
       await _assetConfig.init();
-      
+
       // Configure Dio with settings based on device performance
       _configureDio();
-      
+
       // Start cleanup timer
       _startCleanupTimer();
-      
+
       // Request necessary permissions
       await _requestPermissions();
-      
+
       _isInitialized = true;
       debugPrint('DownloadManager initialized successfully');
     } catch (e) {
@@ -156,6 +163,9 @@ class DownloadManager {
   }
 
   Future<void> _requestPermissions() async {
+    // Skip permissions on web platform
+    if (kIsWeb) return;
+
     if (Platform.isAndroid) {
       await Permission.storage.request();
       if (Platform.version.contains('13') || Platform.version.contains('33')) {
