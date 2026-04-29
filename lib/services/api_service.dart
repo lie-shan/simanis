@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 import '../config/api_config.dart';
 
 class ApiService {
@@ -143,28 +145,61 @@ class ApiService {
     }
   }
 
-  // Handle errors
+  // Handle errors with specific server down detection
   Exception _handleError(dynamic error) {
     if (error is ApiException) {
       return error;
     }
+    
+    // Check if server is down (SocketException)
+    if (error is SocketException || error is http.ClientException) {
+      final errorStr = error.toString().toLowerCase();
+      if (errorStr.contains('connection refused') || 
+          errorStr.contains('failed host lookup') ||
+          errorStr.contains('errno = 7') ||
+          errorStr.contains('errno = 111') ||
+          errorStr.contains('socket')) {
+        return ApiException(
+          message: 'Server sedang offline. Silakan hubungi administrator.',
+          statusCode: 503, // Service Unavailable
+          isServerDown: true,
+        );
+      }
+    }
+    
     return ApiException(
       message: 'Koneksi ke server gagal. Periksa koneksi internet Anda.',
       statusCode: 0,
     );
   }
-}
+  
+  // Check if server is reachable
+  Future<bool> isServerReachable() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}/api/health'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 
 // Custom exception class
 class ApiException implements Exception {
   final String message;
   final int statusCode;
   final Map<String, dynamic>? errors;
+  final bool isServerDown;
 
   ApiException({
     required this.message,
     required this.statusCode,
     this.errors,
+    this.isServerDown = false,
   });
 
   @override

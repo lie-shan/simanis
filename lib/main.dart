@@ -8,6 +8,7 @@ import 'services/api_service.dart';
 import 'services/device_service.dart';
 import 'config/asset_config.dart';
 import 'services/download_manager.dart';
+import 'widgets/server_status_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,6 +106,9 @@ class SimanisApp extends StatelessWidget {
         Locale('id', 'ID'),
         Locale('en', 'US'),
       ],
+      builder: (context, child) {
+        return ServerStatusWidget(child: child!);
+      },
       home: const LoginPage(),
     );
   }
@@ -169,21 +173,29 @@ class _LoginPageState extends State<LoginPage> {
         }
       } on ApiException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (e.isServerDown) {
+            ServerErrorHandler.showServerDownSnackbar(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login gagal: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (e.toString().contains('Server sedang offline')) {
+            ServerErrorHandler.showServerDownSnackbar(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Login gagal: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       } finally {
         if (mounted) {
