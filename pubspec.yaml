@@ -2,7 +2,7 @@ name: simanis
 description: SIMANIS - Sistem Informasi Akademik Nurul Iman
 
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -37,11 +37,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#006747"
+  adaptive_icon_foreground: "assets/images/logo.png"
 
 flutter:
   uses-material-design: true
   assets:
     - assets/icon/
+    - assets/images/
     - assets/sounds/success.mp3
     - assets/sounds/error.mp3

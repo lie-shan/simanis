@@ -187,6 +187,7 @@ class ApiService {
       return false;
     }
   }
+}
 
 // Custom exception class
 class ApiException implements Exception {
