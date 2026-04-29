@@ -25,7 +25,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -79,10 +79,10 @@ android {
     }
 
     // Custom APK filename: simanis-v[versionName].apk
-    androidComponents {
-        onVariants(selector().all()) { variant ->
-            variant.outputs.forEach { output ->
-                output.outputFileName.set("simanis-v${variant.versionName}.apk")
+    applicationVariants.configureEach {
+        outputs.configureEach {
+            (this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl)?.let { output ->
+                output.outputFileName = "simanis-v${versionName}.apk"
             }
         }
     }
